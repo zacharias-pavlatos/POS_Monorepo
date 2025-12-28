@@ -1,0 +1,31 @@
+{
+  "name": "@repo/email",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "email build --dir=./src/templates",
+    "dev": "tsc --watch",
+    "preview": "email dev --dir=./src/templates --port 3002",
+    "export": "email export --dir=./src/templates"
+  },
+  "dependencies": {
+    "@react-email/components": "1.0.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^6.6.0",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@react-email/preview-server": "5.1.0",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.1",
+    "react-email": "5.1.0"
+  }
+}

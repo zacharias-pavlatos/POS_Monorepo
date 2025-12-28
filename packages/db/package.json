@@ -1,0 +1,41 @@
+{
+  "name": "@repo/db",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./client": {
+      "types": "./dist/src/client.d.ts",
+      "default": "./src/client.ts"
+    },
+    "./schema": {
+      "types": "./dist/src/schema.d.ts",
+      "default": "./src/schemas/index.ts"
+    },
+    "./repositories": {
+      "types": "./dist/src/repositories.d.ts",
+      "default": "./src/repositories/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@repo/eslint": "workspace:*",
+    "@repo/prettier": "workspace:*",
+    "@repo/tsconfig": "workspace:*",
+    "@types/node": "^25.0.3",
+    "drizzle-kit": "^0.31.8"
+  }
+}

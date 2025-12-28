@@ -1,0 +1,14 @@
+/**
+ * Central export module for all Drizzle ORM schema definitions.
+ *
+ * This file serves as the single entry point for importing database schema definitions
+ * and their relationships throughout the application. It exports all table schemas,
+ * type definitions, and relationship configurations used for database operations.
+ */
+
+// Auth schema tables and relations
+export * from './auth-schema';
+
+export * from './category';
+export * from './menu-item';
+export * from './restaurant';
