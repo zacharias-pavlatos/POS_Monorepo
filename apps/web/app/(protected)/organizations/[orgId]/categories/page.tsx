@@ -2,7 +2,7 @@ import { apiClient } from '@/lib/api-client';
 import { rpcClient } from '@/lib/rpc-client';
 
 export default async function CategoriesPage() {
-  const categories = await apiClient.categories.all();
+  const categories = await rpcClient.categories.all();
   console.log(JSON.stringify(categories, null, 2));
 
   return (

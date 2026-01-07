@@ -18,16 +18,16 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@orpc/client": "^1.13.0",
-    "@orpc/contract": "^1.13.0",
-    "@orpc/openapi": "^1.13.0",
+    "@orpc/client": "^1.13.2",
+    "@orpc/contract": "^1.13.2",
+    "@orpc/openapi": "^1.13.2",
     "@orpc/openapi-client": "^1.13.2",
-    "@orpc/server": "^1.13.0",
+    "@orpc/server": "^1.13.2",
     "@orpc/tanstack-query": "^1.13.2",
-    "@orpc/zod": "^1.13.0",
+    "@orpc/zod": "^1.13.2",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
-    "zod": "^4.2.1"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@repo/eslint": "workspace:*",

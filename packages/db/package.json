@@ -29,7 +29,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "drizzle-orm": "^0.45.1",
     "drizzle-zod": "^0.8.3",
-    "zod": "^4.2.1"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@repo/eslint": "workspace:*",
