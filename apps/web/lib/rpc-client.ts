@@ -3,7 +3,7 @@
  *
  * Provides type-safe RPC clients for server communication:
  * - `rpcClient`: Direct procedure calls for Server Components and actions
- * - `rpcQuery`: TanStack Query integration for Client Components (useQuery, useMutation)
+ * - `rpcTanstackQuery`: TanStack Query integration for Client Components (useQuery, useMutation)
  *
  * Automatically handles authentication cookies in both browser and SSR contexts.
  */
@@ -16,7 +16,7 @@ export const rpcClient = createRPCClient({
   headers: getHeaders,
 });
 
-export const rpcQuery = createTanstackQueryRPCClient({
+export const rpcTanstackQuery = createTanstackQueryRPCClient({
   url: `${env.NEXT_PUBLIC_SERVER_URL}/rpc`,
   headers: getHeaders,
 });

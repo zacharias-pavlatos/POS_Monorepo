@@ -21,14 +21,14 @@ export const organizationMiddleware = os
 
     if (!activeOrganizationId) {
       throw new ORPCError('FORBIDDEN', {
-        message: 'No active restaurant selected',
+        message: 'No organization selected',
       });
     }
 
     return next({
       context: {
         ...context,
-        // organization: {},
+        activeOrganizationId: activeOrganizationId,
       },
     });
   });

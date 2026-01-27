@@ -25,9 +25,15 @@ export const categoriesCollection = createCollection(
 
     // Persist inserts
     onInsert: async ({ transaction }) => {
-      await Promise.all(
-        transaction.mutations.map(m => rpcClient.categories.create(m.modified))
+      const results = await Promise.all(
+        transaction.mutations.map(m =>
+          rpcClient.categories.create({
+            name: m.modified.name,
+          })
+        )
       );
+
+      return results;
     },
 
     // Persist updates

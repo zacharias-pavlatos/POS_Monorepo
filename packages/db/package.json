@@ -35,7 +35,7 @@
     "@repo/eslint": "workspace:*",
     "@repo/prettier": "workspace:*",
     "@repo/tsconfig": "workspace:*",
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.9",
     "drizzle-kit": "^0.31.8"
   }
 }

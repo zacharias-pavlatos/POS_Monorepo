@@ -13,7 +13,7 @@
  * When no argument is provided, the default database connection is used.
  */
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import category from '../schemas/category';
 
@@ -23,14 +23,21 @@ import type {
   PatchCategoryInputType,
 } from '../schemas/category';
 
-export const categoryRepository = (db: DatabaseInstance) => ({
+export interface TenantContext {
+  db: DatabaseInstance;
+  organizationId: string;
+}
+
+export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
   findAll: () => {
-    return db.query.category.findMany();
+    return db.query.category.findMany({
+      where: eq(category.organizationId, organizationId),
+    });
   },
 
   findById: (id: number) => {
     return db.query.category.findFirst({
-      where: eq(category.id, id),
+      where: and(eq(category.id, id), eq(category.organizationId, organizationId)),
     });
   },
 
@@ -41,7 +48,10 @@ export const categoryRepository = (db: DatabaseInstance) => ({
   },
 
   create: async (data: InsertCategoryInputType) => {
-    const [inserted] = await db.insert(category).values(data).returning();
+    const [inserted] = await db
+      .insert(category)
+      .values({ ...data, organizationId: organizationId })
+      .returning();
     return inserted;
   },
 
@@ -49,13 +59,16 @@ export const categoryRepository = (db: DatabaseInstance) => ({
     const [updated] = await db
       .update(category)
       .set(data)
-      .where(eq(category.id, id))
+      .where(and(eq(category.id, id), eq(category.organizationId, organizationId)))
       .returning();
     return updated ?? null;
   },
 
   delete: async (id: number) => {
-    const [deleted] = await db.delete(category).where(eq(category.id, id)).returning();
+    const [deleted] = await db
+      .delete(category)
+      .where(and(eq(category.id, id), eq(category.organizationId, organizationId)))
+      .returning();
     return deleted ?? null;
   },
 });

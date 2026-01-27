@@ -1,63 +1,85 @@
 import { categoryRepository } from '@repo/db/repositories';
 
-import { authProcedure } from '../procedures.js';
+import { organizationProcedure } from '../procedures.js';
 
 const categoryRouter = {
-  all: authProcedure.categories.all.handler(({ context }) => {
-    return categoryRepository(context.db).findAll();
+  all: organizationProcedure.categories.all.handler(({ context }) => {
+    return categoryRepository({
+      db: context.db,
+      organizationId: context.activeOrganizationId,
+    }).findAll();
   }),
 
-  one: authProcedure.categories.one.handler(async ({ context, input, errors }) => {
-    const dbCategory = await categoryRepository(context.db).findById(input.id);
+  one: organizationProcedure.categories.one.handler(
+    async ({ context, input, errors }) => {
+      const dbCategory = await categoryRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findById(input.id);
 
-    if (!dbCategory) {
-      throw errors.NOT_FOUND({
-        data: {
-          categoryId: input.id,
-        },
-      });
+      if (!dbCategory) {
+        throw errors.NOT_FOUND({
+          data: {
+            categoryId: input.id,
+          },
+        });
+      }
+      return dbCategory;
     }
-    return dbCategory;
-  }),
+  ),
 
-  create: authProcedure.categories.create.handler(async ({ context, input, errors }) => {
-    const res = await categoryRepository(context.db).create(input);
-
-    if (!res) {
-      throw errors.BAD_REQUEST({
-        message: 'Failed to create category',
-      });
+  create: organizationProcedure.categories.create.handler(
+    async ({ context, input, errors }) => {
+      const res = await categoryRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).create(input);
+      if (!res) {
+        throw errors.BAD_REQUEST({
+          message: 'Failed to create category',
+        });
+      }
+      return res;
     }
-    return res;
-  }),
+  ),
 
-  update: authProcedure.categories.update.handler(async ({ context, input, errors }) => {
-    const { id, ...data } = input;
-    const updated = await categoryRepository(context.db).update(id, data);
+  update: organizationProcedure.categories.update.handler(
+    async ({ context, input, errors }) => {
+      const { id, ...data } = input;
+      const updated = await categoryRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).update(id, data);
 
-    if (!updated) {
-      throw errors.NOT_FOUND({
-        data: {
-          categoryId: input.id,
-        },
-      });
+      if (!updated) {
+        throw errors.NOT_FOUND({
+          data: {
+            categoryId: input.id,
+          },
+        });
+      }
+
+      return updated;
     }
+  ),
 
-    return updated;
-  }),
+  delete: organizationProcedure.categories.delete.handler(
+    async ({ context, input, errors }) => {
+      const res = await categoryRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).delete(input.id);
 
-  delete: authProcedure.categories.delete.handler(async ({ context, input, errors }) => {
-    const res = await categoryRepository(context.db).delete(input.id);
-
-    if (!res) {
-      throw errors.NOT_FOUND({
-        data: {
-          categoryId: input.id,
-        },
-      });
+      if (!res) {
+        throw errors.NOT_FOUND({
+          data: {
+            categoryId: input.id,
+          },
+        });
+      }
+      return res;
     }
-    return res;
-  }),
+  ),
 };
 
 export default categoryRouter;

@@ -17,8 +17,18 @@
  * - Ensures consistent validation across all endpoints
  */
 
-import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import {
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+import { organization } from './auth-schema';
 
 import type { z } from 'zod';
 
@@ -29,16 +39,31 @@ import type { z } from 'zod';
  * data integrity at the database level.
  */
 
-export const category = pgTable('category', {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar('name', { length: 255 }).notNull().unique(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at')
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at'),
-});
+export const category = pgTable(
+  'category',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    // 🔑 Tenant boundary
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+
+    name: varchar('name', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+    deletedAt: timestamp('deleted_at'),
+  },
+  table => [
+    /**
+     * IMPORTANT:
+     * Name must be unique per organization, not globally.
+     */
+    uniqueIndex('category_org_name_unique').on(table.organizationId, table.name),
+  ]
+);
 
 /**
  * API Layer - Request validation Zod schema.
@@ -53,6 +78,7 @@ export const InsertCategorySchema = createInsertSchema(category, {
 })
   // Excludes auto-generated fields that clients shouldn't provide.
   .omit({
+    organizationId: true,
     createdAt: true,
     updatedAt: true,
     deletedAt: true,

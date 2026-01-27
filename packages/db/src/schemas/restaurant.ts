@@ -1,10 +1,10 @@
-import type { z } from "zod";
+import { boolean, integer, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
-import { boolean, integer, numeric, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import type { z } from 'zod';
 
 // Drizzle
-const restaurant = pgTable("restaurant", {
+const restaurant = pgTable('restaurant', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: text().notNull().unique(),
   description: text(),
@@ -28,7 +28,10 @@ const restaurant = pgTable("restaurant", {
   email: text().notNull().unique(),
 
   createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow().$onUpdate(() => new Date()),
+  updatedAt: timestamp()
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
   deletedAt: timestamp(),
 });
 
