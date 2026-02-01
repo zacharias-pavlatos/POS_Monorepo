@@ -1,9 +1,14 @@
-import { relations } from 'drizzle-orm';
+/**
+ * Modifier schema - Product customization and options
+ *
+ * Modifiers allow products to have customizable options (sizes, toppings, extras).
+ * Supports dynamic pricing and conditional visibility based on selections.
+ */
+
 import {
   uuid,
   boolean,
   integer,
-  numeric,
   pgEnum,
   pgTable,
   text,
@@ -11,10 +16,13 @@ import {
   unique,
   index,
 } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import type { z } from 'zod';
 
 import { organization } from './auth-schema';
 import { timestamps } from './helpers';
-import { products } from './product';
+import { product } from './product';
 
 // ============================================================================
 // ENUMS
@@ -37,35 +45,40 @@ export const selectionTypeEnum = pgEnum('selection_type', ['single', 'multiple']
  * Examples:
  * - "Size" (single, required, min=1, max=1)
  * - "Toppings" (multi, optional, min=0, max=5)
+ * - "Coffee Blend" (single, required, min=1, max=1)
  */
-export const modifierGroups = pgTable('modifier_groups', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: text('organization_id')
-    .notNull()
-    .references(() => organization.id),
-  productId: uuid('product_id')
-    .notNull()
- .references(() => products.id, { onDelete: 'cascade' }),
+export const modifierGroup = pgTable(
+  'modifier_group',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    productId: uuid('product_id')
+      .notNull()
+      .references(() => product.id, { onDelete: 'cascade' }),
 
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
 
-  /** single = radio buttons, multi = checkboxes */
-  selectionType: selectionTypeEnum('selection_type').notNull().default('single'),
-  /** If true, customer must make a selection before adding to cart */
-  isRequired: boolean('is_required').notNull().default(false),
-  /** Minimum selections required (0 = optional, 1+ = required) */
-  minSelections: integer('min_selections').notNull().default(0),
-  /** Maximum selections allowed (null = unlimited for multi-select) */
-  maxSelections: integer('max_selections'),
-  /** UI display order (lower = first) */
-  displayOrder: integer('display_order').notNull().default(0),
+    /** single = radio buttons, multi = checkboxes */
+    selectionType: selectionTypeEnum('selection_type').notNull().default('single'),
+    /** If true, customer must make a selection before adding to cart */
+    isRequired: boolean('is_required').notNull().default(false),
+    /** Minimum selections required (0 = optional, 1+ = required) */
+    minSelections: integer('min_selections').notNull().default(0),
+    /** Maximum selections allowed (null = unlimited for multi-select) */
+    maxSelections: integer('max_selections'),
+    /** UI display order (lower = first) */
+    displayOrder: integer('display_order').notNull().default(0),
 
-  ...timestamps,
-},
-  (table) => [
-    index('idx_modifier_groups_product').on(table.productId),
-    index('idx_modifier_groups_order').on(table.productId, table.displayOrder),
+    ...timestamps,
+  },
+  table => [
+    /* Optimizes: Get all modifier groups for a product */
+    index('idx_modifier_group_product').on(table.productId),
+    /* Optimizes: Get modifier groups ordered by display order */
+    index('idx_modifier_group_order').on(table.productId, table.displayOrder),
   ]
 );
 
@@ -77,35 +90,38 @@ export const modifierGroups = pgTable('modifier_groups', {
  * - "Pepperoni" (+$2.00)
  * - "Mushrooms" (+$1.00, is_default=true)
  */
-export const modifiers = pgTable('modifiers', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: text('organization_id')
-    .notNull()
-    .references(() => organization.id),
-  modifierGroupId: uuid('modifier_group_id')
-    .notNull()
-    .references(() => modifierGroups.id, { onDelete: 'cascade' }),
+export const modifier = pgTable(
+  'modifier',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    modifierGroupId: uuid('modifier_group_id')
+      .notNull()
+      .references(() => modifierGroup.id, { onDelete: 'cascade' }),
 
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
 
-  /* Price adjustment when selected - stored in cents to avoid floating point issues */
-  basePrice: integer('base_price').notNull().default(0),
-  /** If true, pre-select this option in the UI */
-  isDefault: boolean('is_default').notNull().default(false),
-  /** If false, modifier is hidden from selection or out of stock */
-  isActive: boolean('is_active').notNull().default(true),
-  /** UI display order (lower = first) */
-  displayOrder: integer('display_order').notNull().default(0),
+    /* Price adjustment when selected - stored in cents to avoid floating point issues */
+    basePrice: integer('base_price').notNull().default(0),
+    /** If true, pre-select this option in the UI */
+    isDefault: boolean('is_default').notNull().default(false),
+    /** If false, modifier is hidden from selection or out of stock */
+    isActive: boolean('is_active').notNull().default(true),
+    /** UI display order (lower = first) */
+    displayOrder: integer('display_order').notNull().default(0),
 
-  ...timestamps,
-},
-  (table) => [
-    index('idx_modifiers_group').on(table.modifierGroupId),
-    index('idx_modifiers_order').on(table.modifierGroupId, table.displayOrder),
+    ...timestamps,
+  },
+  table => [
+    /* Optimizes: Get all modifiers in a group */
+    index('idx_modifier_group').on(table.modifierGroupId),
+    /* Optimizes: Get modifiers ordered by display order */
+    index('idx_modifier_order').on(table.modifierGroupId, table.displayOrder),
   ]
 );
-
 
 /**
  * Modifier Option Dependencies
@@ -156,18 +172,22 @@ export const modifiers = pgTable('modifiers', {
  * No separate table needed.
  */
 
-export const modifierOptionDependencies = pgTable(
-  'modifier_option_dependencies',
+export const modifierOptionDependency = pgTable(
+  'modifier_option_dependency',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+
     /** The modifier whose price/visibility is affected */
     modifierId: uuid('modifier_id')
       .notNull()
-      .references(() => modifiers.id, { onDelete: 'cascade' }),
+      .references(() => modifier.id, { onDelete: 'cascade' }),
     /** The modifier that triggers this dependency when selected */
     dependsOnModifierId: uuid('depends_on_modifier_id')
       .notNull()
-      .references(() => modifiers.id, { onDelete: 'cascade' }),
+      .references(() => modifier.id, { onDelete: 'cascade' }),
 
     /* Price to use when this dependency is active (overrides priceAdjustment)- stored in cents to avoid floating point issues */
     price: integer('price').notNull().default(0),
@@ -176,10 +196,21 @@ export const modifierOptionDependencies = pgTable(
 
     ...timestamps,
   },
-  (table) => [
-    unique('uq_mod_deps').on(table.modifierId, table.dependsOnModifierId),
-    index('idx_mod_deps_modifier').on(table.modifierId),
-    index('idx_mod_deps_depends_on').on(table.dependsOnModifierId),
+  table => [
+    /**
+     * Ensures same dependency pair is unique per organization.
+     * Prevents duplicate: (org A, modifier X → modifier Y) appearing twice.
+     */
+    unique('uq_mod_deps').on(
+      table.organizationId,
+      table.modifierId,
+      table.dependsOnModifierId
+    ),
+
+    /* Optimizes: Get all dependencies affecting a modifier */
+    index('idx_mod_deps_modifier').on(table.organizationId, table.modifierId),
+    /* Optimizes: Get all dependencies triggered by a modifier */
+    index('idx_mod_deps_depends_on').on(table.organizationId, table.dependsOnModifierId),
   ]
 );
 
@@ -187,52 +218,119 @@ export const modifierOptionDependencies = pgTable(
 // RELATIONS
 // ==========================================================================
 
-export const modifierGroupsRelations = relations(modifierGroups, ({ one, many }) => ({
-  product: one(products, {
-    fields: [modifierGroups.productId],
-    references: [products.id],
+export const modifierGroupRelations = relations(modifierGroup, ({ one, many }) => ({
+  product: one(product, {
+    fields: [modifierGroup.productId],
+    references: [product.id],
   }),
-  modifiers: many(modifiers),
+  /* Modifier options in this group */
+  modifiers: many(modifier),
 }));
 
-export const modifiersRelations = relations(modifiers, ({ one, many }) => ({
-  modifierGroup: one(modifierGroups, {
-    fields: [modifiers.modifierGroupId],
-    references: [modifierGroups.id],
+export const modifierRelations = relations(modifier, ({ one, many }) => ({
+  modifierGroup: one(modifierGroup, {
+    fields: [modifier.modifierGroupId],
+    references: [modifierGroup.id],
   }),
   /** Dependencies where THIS modifier's price/visibility is affected */
-  dependencies: many(modifierOptionDependencies, { relationName: 'modifier' }),
+  dependencies: many(modifierOptionDependency, { relationName: 'modifier' }),
   /** Dependencies where THIS modifier is the trigger */
-  dependents: many(modifierOptionDependencies, { relationName: 'dependsOn' }),
+  dependents: many(modifierOptionDependency, { relationName: 'dependsOn' }),
 }));
 
-export const modifierOptionDependenciesRelations = relations(
-  modifierOptionDependencies,
+export const modifierOptionDependencyRelations = relations(
+  modifierOptionDependency,
   ({ one }) => ({
     /** The modifier being affected */
-    modifier: one(modifiers, {
-      fields: [modifierOptionDependencies.modifierId],
-      references: [modifiers.id],
+    modifier: one(modifier, {
+      fields: [modifierOptionDependency.modifierId],
+      references: [modifier.id],
       relationName: 'modifier',
     }),
     /** The modifier that triggers this dependency */
-    dependsOnModifier: one(modifiers, {
-      fields: [modifierOptionDependencies.dependsOnModifierId],
-      references: [modifiers.id],
+    dependsOnModifier: one(modifier, {
+      fields: [modifierOptionDependency.dependsOnModifierId],
+      references: [modifier.id],
       relationName: 'dependsOn',
     }),
   })
 );
 
 // ============================================================================
+// SCHEMA VALIDATION
+// ============================================================================
+
+// ModifierGroup
+export const SelectModifierGroupSchema = createSelectSchema(modifierGroup);
+export const InsertModifierGroupSchema = createInsertSchema(modifierGroup, {
+  name: field => field.min(1).max(255),
+  description: field => field.max(1000).optional(),
+  minSelections: field => field.int().min(0).optional(),
+  maxSelections: field => field.int().min(1).optional().nullable(),
+  displayOrder: field => field.int().min(0).optional(),
+}).omit({
+  organizationId: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
+export const PatchModifierGroupSchema = InsertModifierGroupSchema.partial();
+
+// Modifier
+export const SelectModifierSchema = createSelectSchema(modifier);
+export const InsertModifierSchema = createInsertSchema(modifier, {
+  name: field => field.min(1).max(255),
+  description: field => field.max(1000).optional(),
+  basePrice: field => field.int().min(0).optional(),
+  displayOrder: field => field.int().min(0).optional(),
+}).omit({
+  organizationId: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
+export const PatchModifierSchema = InsertModifierSchema.partial();
+
+// ModifierOptionDependency
+export const SelectModifierOptionDependencySchema = createSelectSchema(
+  modifierOptionDependency
+);
+export const InsertModifierOptionDependencySchema = createInsertSchema(
+  modifierOptionDependency,
+  {
+    price: field => field.int().min(0).optional(),
+  }
+).omit({
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
+export const PatchModifierOptionDependencySchema =
+  InsertModifierOptionDependencySchema.partial();
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
-export type ModifierGroup = typeof modifierGroups.$inferSelect;
-export type NewModifierGroup = typeof modifierGroups.$inferInsert;
+// ModifierGroup
+export type SelectModifierGroupType = z.infer<typeof SelectModifierGroupSchema>;
+export type InsertModifierGroupInputType = z.infer<typeof InsertModifierGroupSchema>;
+export type PatchModifierGroupInputType = z.infer<typeof PatchModifierGroupSchema>;
 
-export type Modifier = typeof modifiers.$inferSelect;
-export type NewModifier = typeof modifiers.$inferInsert;
+// Modifier
+export type SelectModifierType = z.infer<typeof SelectModifierSchema>;
+export type InsertModifierInputType = z.infer<typeof InsertModifierSchema>;
+export type PatchModifierInputType = z.infer<typeof PatchModifierSchema>;
 
-export type ModifierOptionDependency = typeof modifierOptionDependencies.$inferSelect;
-export type NewModifierOptionDependency = typeof modifierOptionDependencies.$inferInsert;
+// ModifierOptionDependency
+export type SelectModifierOptionDependencyType = z.infer<
+  typeof SelectModifierOptionDependencySchema
+>;
+export type InsertModifierOptionDependencyInputType = z.infer<
+  typeof InsertModifierOptionDependencySchema
+>;
+export type PatchModifierOptionDependencyInputType = z.infer<
+  typeof PatchModifierOptionDependencySchema
+>;
+
+export default modifierGroup;

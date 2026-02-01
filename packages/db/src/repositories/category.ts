@@ -23,8 +23,6 @@ import type {
 } from '../schemas/category';
 import type { TenantContext } from './types';
 
-
-
 export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
   findAll: () => {
     return db.query.category.findMany({

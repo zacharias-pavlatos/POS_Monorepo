@@ -12,4 +12,6 @@ export * from './auth-schema';
 export * from './category';
 export * from './product';
 export * from './modifier';
-export * from './restaurant';
+export * from './offer';
+
+// export * from './restaurant';
