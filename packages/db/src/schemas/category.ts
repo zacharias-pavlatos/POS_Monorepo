@@ -18,7 +18,6 @@
  */
 
 import {
-  integer,
   pgTable,
   text,
   timestamp,
@@ -42,8 +41,7 @@ import type { z } from 'zod';
 export const category = pgTable(
   'category',
   {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    // 🔑 Tenant boundary
+    id: uuid('id').primaryKey().defaultRandom(),
     organizationId: text('organization_id')
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),

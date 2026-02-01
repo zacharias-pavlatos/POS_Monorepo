@@ -17,16 +17,13 @@ import { and, eq } from 'drizzle-orm';
 
 import category from '../schemas/category';
 
-import type { DatabaseInstance } from '../client';
 import type {
   InsertCategoryInputType,
   PatchCategoryInputType,
 } from '../schemas/category';
+import type { TenantContext } from './types';
 
-export interface TenantContext {
-  db: DatabaseInstance;
-  organizationId: string;
-}
+
 
 export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
   findAll: () => {
@@ -35,7 +32,7 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  findById: (id: number) => {
+  findById: (id: string) => {
     return db.query.category.findFirst({
       where: and(eq(category.id, id), eq(category.organizationId, organizationId)),
     });
@@ -47,24 +44,24 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  create: async (data: InsertCategoryInputType) => {
+  create: async (payload: InsertCategoryInputType) => {
     const [inserted] = await db
       .insert(category)
-      .values({ ...data, organizationId: organizationId })
+      .values({ ...payload, organizationId: organizationId })
       .returning();
     return inserted;
   },
 
-  update: async (id: number, data: PatchCategoryInputType) => {
+  update: async (id: string, payload: PatchCategoryInputType) => {
     const [updated] = await db
       .update(category)
-      .set(data)
+      .set(payload)
       .where(and(eq(category.id, id), eq(category.organizationId, organizationId)))
       .returning();
     return updated ?? null;
   },
 
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     const [deleted] = await db
       .delete(category)
       .where(and(eq(category.id, id), eq(category.organizationId, organizationId)))

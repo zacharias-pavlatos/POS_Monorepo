@@ -10,5 +10,6 @@
 export * from './auth-schema';
 
 export * from './category';
-export * from './menu-item';
+export * from './product';
+export * from './modifier';
 export * from './restaurant';

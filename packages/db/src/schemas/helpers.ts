@@ -1,4 +1,4 @@
-import { timestamp } from "drizzle-orm/gel-core";
+import { timestamp } from "drizzle-orm/pg-core";
 
 export const timestamps = {
   createdAt: timestamp("created_at")

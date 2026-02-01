@@ -1,6 +1,7 @@
 import { oc } from '@orpc/contract';
 
 import categoryContract from './categories';
+import productContract from './products';
 
 export const appContract = oc
   .errors({
@@ -30,4 +31,5 @@ export const appContract = oc
   })
   .router({
     categories: categoryContract,
+    products: productContract,
   });

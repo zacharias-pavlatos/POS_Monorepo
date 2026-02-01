@@ -32,7 +32,7 @@ const categoryContract = oc
       .errors(missingIdError)
       .input(
         z.object({
-          id: z.coerce.number(),
+          id: z.uuid(),
         })
       )
       .output(SelectCategorySchema),
@@ -57,7 +57,7 @@ const categoryContract = oc
           'Partially updates an existing category. Only provided fields will be modified; omitted fields remain unchanged.',
       })
       .errors(missingIdError)
-      .input(z.object({ id: z.coerce.number() }).merge(PatchCategorySchema))
+      .input(z.object({ id: z.uuid() }).and(PatchCategorySchema))
       .output(SelectCategorySchema),
 
     delete: oc
@@ -69,7 +69,7 @@ const categoryContract = oc
           'Permanently removes a category. This action cannot be undone. Associated menu items may need to be reassigned.',
       })
       .errors(missingIdError)
-      .input(z.object({ id: z.coerce.number() }))
+      .input(z.object({ id: z.uuid() }))
       .output(SelectCategorySchema),
   });
 

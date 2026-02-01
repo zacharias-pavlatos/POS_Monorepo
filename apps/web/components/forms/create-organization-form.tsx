@@ -28,7 +28,7 @@ const createOrganizationSchema = z.object({
 type CreateOrganizationFormType = z.infer<typeof createOrganizationSchema>;
 
 export function CreateOrganizationForm() {
-  const form = useForm<CreateOrganizationFormType>({
+  const form = useForm({
     resolver: zodResolver(createOrganizationSchema),
     defaultValues: {
       name: '',
