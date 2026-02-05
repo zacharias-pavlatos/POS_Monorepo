@@ -170,6 +170,20 @@ export const organizationRelations = relations(organization, ({ many }) => ({
   organizationRoles: many(organizationRole),
   members: many(member),
   invitations: many(invitation),
+
+  //TODO: Add relations for all other tables (make sure that it makes sense)
+  // restaurant: one(restaurant, {
+  //   fields: [organization.id],
+  //   references: [restaurant.organizationId],
+  // }),
+  // workStations: many(workStation),
+  // catalogs: many(catalog),
+  // categories: many(category),
+  // products: many(product),
+  // modifierGroups: many(modifierGroup),
+  // modifiers: many(modifier),
+  // modifierOptionDependencies: many(modifierOptionDependency),
+  // offers: many(offer),
 }));
 
 export const organizationRoleRelations = relations(organizationRole, ({ one }) => ({

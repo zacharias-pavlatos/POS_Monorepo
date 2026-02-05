@@ -21,6 +21,8 @@ import { modifierGroup } from './modifier';
 import type { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categoryProduct } from './category';
+import workstation from './workstation';
+import { offerProduct } from './offer';
 
 // ==========================================================================
 // TABLES
@@ -32,7 +34,7 @@ import { categoryProduct } from './category';
  * Examples:
  * - "Espresso" (basePrice: 300 = €3.00)
  * - "Cheeseburger" (basePrice: 850 = €8.50)
- * - "Caesar Salad" (basePrice: 950 = €9.50)
+ * - "Draft Beer" (basePrice: 500 = €5.00, workstation: "Bar" - always)
  */
 export const product = pgTable(
   'product',
@@ -41,6 +43,10 @@ export const product = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
+    /** Optional workstation override - if set, ALWAYS uses this station regardless of category */
+    workstationId: uuid('workstation_id').references(() => workstation.id, {
+      onDelete: 'set null',
+    }),
 
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
@@ -55,6 +61,8 @@ export const product = pgTable(
     index('idx_product_org_active').on(table.organizationId, table.isActive),
     /* Optimizes: Search products by name within organization */
     index('idx_product_org_name').on(table.organizationId, table.name),
+    /* Optimizes: Get products by workstation */
+    index('idx_product_workstation').on(table.workstationId),
   ]
 );
 
@@ -62,9 +70,18 @@ export const product = pgTable(
 // RELATIONS
 // ==========================================================================
 
-export const productRelations = relations(product, ({ many }) => ({
-  modifierGroups: many(modifierGroup), // Modifier groups for this product
+export const productRelations = relations(product, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [product.organizationId],
+    references: [organization.id],
+  }),
+  workstation: one(workstation, {
+    fields: [product.workstationId],
+    references: [workstation.id],
+  }),
+  modifierGroups: many(modifierGroup), // Modifier groups for this product (sizes, toppings, etc.)
   categories: many(categoryProduct), // Categories this product belongs to
+  offers: many(offerProduct), // Offers that target this product
 }));
 
 // ==========================================================================

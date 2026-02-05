@@ -219,6 +219,10 @@ export const modifierOptionDependency = pgTable(
 // ==========================================================================
 
 export const modifierGroupRelations = relations(modifierGroup, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [modifierGroup.organizationId],
+    references: [organization.id],
+  }),
   product: one(product, {
     fields: [modifierGroup.productId],
     references: [product.id],
@@ -228,6 +232,10 @@ export const modifierGroupRelations = relations(modifierGroup, ({ one, many }) =
 }));
 
 export const modifierRelations = relations(modifier, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [modifier.organizationId],
+    references: [organization.id],
+  }),
   modifierGroup: one(modifierGroup, {
     fields: [modifier.modifierGroupId],
     references: [modifierGroup.id],
@@ -241,6 +249,10 @@ export const modifierRelations = relations(modifier, ({ one, many }) => ({
 export const modifierOptionDependencyRelations = relations(
   modifierOptionDependency,
   ({ one }) => ({
+    organization: one(organization, {
+      fields: [modifierOptionDependency.organizationId],
+      references: [organization.id],
+    }),
     /** The modifier being affected */
     modifier: one(modifier, {
       fields: [modifierOptionDependency.modifierId],

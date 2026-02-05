@@ -216,7 +216,11 @@ export const offerProduct = pgTable(
 // RELATIONS
 // ============================================================================
 
-export const offerRelations = relations(offer, ({ many }) => ({
+export const offerRelations = relations(offer, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [offer.organizationId],
+    references: [organization.id],
+  }),
   categories: many(offerCategory), // Categories this offer targets
   products: many(offerProduct), // Products this offer targets
 }));
