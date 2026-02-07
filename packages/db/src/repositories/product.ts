@@ -1,43 +1,132 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, ilike, isNull } from 'drizzle-orm';
 
-import { products } from '../schemas/product';
-
-import type { InsertProduct, UpdateProduct } from '../schemas/product';
+import { product } from '../schemas/product';
+import type { InsertProductInputType, PatchProductInputType } from '../schemas/product';
 import type { TenantContext } from './types';
 
 export const productRepository = ({ db, organizationId }: TenantContext) => ({
-  findAll: async () => {
-    return db.query.products.findMany({
-      where: eq(products.organizationId, organizationId),
+  findAll: () => {
+    return db.query.product.findMany({
+      where: and(eq(product.organizationId, organizationId), isNull(product.deletedAt)),
     });
   },
 
-  findById: async (id: string) => {
-    return db.query.products.findFirst({
-      where: and(eq(products.id, id), eq(products.organizationId, organizationId)),
+  findById: (id: string) => {
+    return db.query.product.findFirst({
+      where: and(
+        eq(product.id, id),
+        eq(product.organizationId, organizationId),
+        isNull(product.deletedAt)
+      ),
     });
   },
 
-  create: async (payload: InsertProduct) => {
-    const [inserted] = await db.insert(products)
-      .values({ ...payload, organizationId: organizationId })
+  findAllActive: () => {
+    return db.query.product.findMany({
+      where: and(
+        eq(product.organizationId, organizationId),
+        eq(product.isActive, true),
+        isNull(product.deletedAt)
+      ),
+    });
+  },
+
+  searchByName: (query: string) => {
+    return db.query.product.findMany({
+      where: and(
+        eq(product.organizationId, organizationId),
+        ilike(product.name, `%${query}%`),
+        isNull(product.deletedAt)
+      ),
+    });
+  },
+
+  findByIdWithModifiers: (id: string) => {
+    return db.query.product.findFirst({
+      where: and(
+        eq(product.id, id),
+        eq(product.organizationId, organizationId),
+        isNull(product.deletedAt)
+      ),
+      with: {
+        modifierGroups: {
+          orderBy: (mg: any, { asc }: any) => [asc(mg.displayOrder)],
+          with: {
+            modifiers: {
+              orderBy: (m: any, { asc }: any) => [asc(m.displayOrder)],
+            },
+          },
+        },
+      },
+    });
+  },
+
+  findByIdFull: (id: string) => {
+    return db.query.product.findFirst({
+      where: and(
+        eq(product.id, id),
+        eq(product.organizationId, organizationId),
+        isNull(product.deletedAt)
+      ),
+      with: {
+        workstation: true,
+        categories: { with: { category: true } },
+        modifierGroups: {
+          orderBy: (mg: any, { asc }: any) => [asc(mg.displayOrder)],
+          with: {
+            modifiers: {
+              orderBy: (m: any, { asc }: any) => [asc(m.displayOrder)],
+              with: { dependencies: true },
+            },
+          },
+        },
+        offers: { with: { offer: true } },
+      },
+    });
+  },
+
+  create: async (payload: InsertProductInputType) => {
+    const [inserted] = await db
+      .insert(product)
+      .values({ ...payload, organizationId })
       .returning();
     return inserted;
   },
 
-  update: async (id: string, payload: UpdateProduct) => {
+  update: async (id: string, payload: PatchProductInputType) => {
     const [updated] = await db
-      .update(products)
-      .set( payload)
-      .where(and(eq(products.id, id), eq(products.organizationId, organizationId)))
+      .update(product)
+      .set(payload)
+      .where(
+        and(
+          eq(product.id, id),
+          eq(product.organizationId, organizationId),
+          isNull(product.deletedAt)
+        )
+      )
       .returning();
     return updated ?? null;
   },
 
-  delete: async (id: string) => {
+  softDelete: async (id: string) => {
     const [deleted] = await db
-      .delete(products)
-      .where(and(eq(products.id, id), eq(products.organizationId, organizationId)))
+      .update(product)
+      .set({ deletedAt: new Date() })
+      .where(
+        and(
+          eq(product.id, id),
+          eq(product.organizationId, organizationId),
+          isNull(product.deletedAt)
+        )
+      )
+      .returning();
+    return deleted ?? null;
+  },
+
+  hardDelete: async (id: string) => {
+    const [deleted] = await db
+      .delete(product)
+      .where(and(eq(product.id, id), eq(product.organizationId, organizationId)))
       .returning();
     return deleted ?? null;
   },

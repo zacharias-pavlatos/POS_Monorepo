@@ -1,51 +1,72 @@
-/**
- * Creates a category repository bound to the given database connection.
- *
- * This factory pattern allows dependency injection while providing a convenient
- * default. Instead of hardcoding the database connection, the repository receives
- * it as a parameter — enabling flexibility without sacrificing ease of use.
- *
- * Use cases for passing a custom db:
- * - **Transactions** — pass `tx` to group operations atomically
- * - **Testing** — inject a mock database without module mocking
- * - **Multi-tenancy** — use tenant-specific database connections
- *
- * When no argument is provided, the default database connection is used.
- */
+import { and, eq, isNull } from 'drizzle-orm';
 
-import { and, eq } from 'drizzle-orm';
-
-import category from '../schemas/category';
-
+import { category, categoryProduct } from '../schemas/category';
 import type {
   InsertCategoryInputType,
   PatchCategoryInputType,
+  InsertCategoryProductInputType,
 } from '../schemas/category';
 import type { TenantContext } from './types';
 
 export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
   findAll: () => {
     return db.query.category.findMany({
-      where: eq(category.organizationId, organizationId),
+      where: and(eq(category.organizationId, organizationId), isNull(category.deletedAt)),
     });
   },
 
   findById: (id: string) => {
     return db.query.category.findFirst({
-      where: and(eq(category.id, id), eq(category.organizationId, organizationId)),
+      where: and(
+        eq(category.id, id),
+        eq(category.organizationId, organizationId),
+        isNull(category.deletedAt)
+      ),
     });
   },
 
   findByName: (name: string) => {
     return db.query.category.findFirst({
-      where: eq(category.name, name),
+      where: and(
+        eq(category.organizationId, organizationId),
+        eq(category.name, name),
+        isNull(category.deletedAt)
+      ),
+    });
+  },
+
+  findByCatalog: (catalogId: string) => {
+    return db.query.category.findMany({
+      where: and(
+        eq(category.organizationId, organizationId),
+        eq(category.catalogId, catalogId),
+        eq(category.isActive, true),
+        isNull(category.deletedAt)
+      ),
+      orderBy: category.servingOrder,
+    });
+  },
+
+  findByIdWithProducts: (id: string) => {
+    return db.query.category.findFirst({
+      where: and(
+        eq(category.id, id),
+        eq(category.organizationId, organizationId),
+        isNull(category.deletedAt)
+      ),
+      with: {
+        products: {
+          orderBy: (cp: any, { asc }: any) => [asc(cp.displayOrder)],
+          with: { product: true },
+        },
+      },
     });
   },
 
   create: async (payload: InsertCategoryInputType) => {
     const [inserted] = await db
       .insert(category)
-      .values({ ...payload, organizationId: organizationId })
+      .values({ ...payload, organizationId })
       .returning();
     return inserted;
   },
@@ -54,16 +75,81 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
     const [updated] = await db
       .update(category)
       .set(payload)
-      .where(and(eq(category.id, id), eq(category.organizationId, organizationId)))
+      .where(
+        and(
+          eq(category.id, id),
+          eq(category.organizationId, organizationId),
+          isNull(category.deletedAt)
+        )
+      )
       .returning();
     return updated ?? null;
   },
 
-  delete: async (id: string) => {
+  softDelete: async (id: string) => {
+    const [deleted] = await db
+      .update(category)
+      .set({ deletedAt: new Date() })
+      .where(
+        and(
+          eq(category.id, id),
+          eq(category.organizationId, organizationId),
+          isNull(category.deletedAt)
+        )
+      )
+      .returning();
+    return deleted ?? null;
+  },
+
+  hardDelete: async (id: string) => {
     const [deleted] = await db
       .delete(category)
       .where(and(eq(category.id, id), eq(category.organizationId, organizationId)))
       .returning();
     return deleted ?? null;
+  },
+
+  // ── Category <-> Product junction ─────────────────────────────────
+
+  addProduct: async (payload: InsertCategoryProductInputType) => {
+    const [inserted] = await db
+      .insert(categoryProduct)
+      .values({ ...payload, organizationId })
+      .onConflictDoNothing()
+      .returning();
+    return inserted ?? null;
+  },
+
+  removeProduct: async (categoryId: string, productId: string) => {
+    const [deleted] = await db
+      .delete(categoryProduct)
+      .where(
+        and(
+          eq(categoryProduct.categoryId, categoryId),
+          eq(categoryProduct.productId, productId),
+          eq(categoryProduct.organizationId, organizationId)
+        )
+      )
+      .returning();
+    return deleted ?? null;
+  },
+
+  updateProductOrder: async (
+    categoryId: string,
+    productId: string,
+    displayOrder: number
+  ) => {
+    const [updated] = await db
+      .update(categoryProduct)
+      .set({ displayOrder })
+      .where(
+        and(
+          eq(categoryProduct.categoryId, categoryId),
+          eq(categoryProduct.productId, productId),
+          eq(categoryProduct.organizationId, organizationId)
+        )
+      )
+      .returning();
+    return updated ?? null;
   },
 });

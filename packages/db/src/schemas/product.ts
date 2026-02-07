@@ -60,6 +60,8 @@ export const product = pgTable(
     // allergens: text('allergens').array(), // ['gluten', 'dairy', 'nuts']
     // nutritionalInfo: text('nutritional_info'), // JSON string
 
+    //TODO: Maybe add hours of availability days and period
+
     isActive: boolean('is_active').notNull().default(true),
 
     ...timestamps,
