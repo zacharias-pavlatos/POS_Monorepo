@@ -56,7 +56,7 @@ export const catalog = pgTable(
     availableFrom: time('available_from'),
     /** Daily availability end time "HH:MM:SS" (null = available until midnight) */
     availableUntil: time('available_until'),
-    /** Days of the week when active: [0,1,2,3,4,5,6] (0=Sunday, 6=Saturday, null = all days) */
+    /** Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday, null = all days) */
     activeDaysOfWeek: integer('active_days_of_week').array(),
 
     /** Catalog color for UI display (hex format, e.g., "#FF5733") */

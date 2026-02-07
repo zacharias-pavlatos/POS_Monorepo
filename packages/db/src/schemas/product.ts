@@ -48,10 +48,18 @@ export const product = pgTable(
       onDelete: 'set null',
     }),
 
+    // sku: varchar('sku', { length: 100 }),
+    barcode: varchar('barcode', { length: 100 }),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
+    image: text('image'),
+    preparationTime: integer('preparation_time'), // seconds
     /* Price is in cents to avoid floating point issues */
     basePrice: integer('base_price').notNull().default(0),
+
+    // allergens: text('allergens').array(), // ['gluten', 'dairy', 'nuts']
+    // nutritionalInfo: text('nutritional_info'), // JSON string
+
     isActive: boolean('is_active').notNull().default(true),
 
     ...timestamps,
