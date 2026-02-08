@@ -2,9 +2,9 @@ import { oc } from '@orpc/contract';
 import { z } from 'zod';
 
 import {
-  ProductInsertSchema,
-  ProductSelectSchema,
-  ProductUpdateSchema,
+  InsertProductSchema,
+  SelectProductSchema,
+  PatchProductSchema,
 } from '@repo/db/schema';
 
 import { missingIdError } from '../utils/commonErrors';
@@ -20,7 +20,7 @@ const productContract = oc
         summary: 'List all products',
         description: 'Retrieve all products from the organization',
       })
-      .output(z.array(ProductSelectSchema)),
+      .output(z.array(SelectProductSchema)),
 
     one: oc
       .route({
@@ -35,18 +35,17 @@ const productContract = oc
           id: z.uuid(),
         })
       )
-      .output(ProductSelectSchema),
+      .output(SelectProductSchema),
 
     create: oc
       .route({
         method: 'POST',
         path: '/',
         summary: 'Create a new product.',
-        description:
-          'Creates a new product. Products are the items that can be sold.',
+        description: 'Creates a new product. Products are the items that can be sold.',
       })
-      .input(ProductInsertSchema)
-      .output(ProductSelectSchema),
+      .input(InsertProductSchema)
+      .output(SelectProductSchema),
 
     update: oc
       .route({
@@ -57,20 +56,19 @@ const productContract = oc
           'Partially updates an existing product. Only provided fields will be modified; omitted fields remain unchanged.',
       })
       .errors(missingIdError)
-      .input(z.object({ id: z.uuid() }).and(ProductUpdateSchema))
-      .output(ProductSelectSchema),
+      .input(z.object({ id: z.uuid() }).and(PatchProductSchema))
+      .output(SelectProductSchema),
 
     delete: oc
       .route({
         method: 'DELETE',
         path: '/{id}',
         summary: 'Delete a product',
-        description:
-          'Permanently removes a product. This action cannot be undone.',
+        description: 'Permanently removes a product. This action cannot be undone.',
       })
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }))
-      .output(ProductSelectSchema),
+      .output(SelectProductSchema),
   });
 
 export default productContract;
