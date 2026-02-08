@@ -57,6 +57,42 @@ export const catalogRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
+  /** Full POS expansion: catalog → categories → products → modifierGroups → modifiers → dependencies */
+  findByIdDetailed: (id: string) => {
+    return db.query.catalog.findFirst({
+      where: and(
+        eq(catalog.id, id),
+        eq(catalog.organizationId, organizationId),
+        isNull(catalog.deletedAt)
+      ),
+      with: {
+        categories: {
+          orderBy: (cat: any, { asc }: any) => [asc(cat.servingOrder)],
+          with: {
+            products: {
+              orderBy: (cp: any, { asc }: any) => [asc(cp.displayOrder)],
+              with: {
+                product: {
+                  with: {
+                    modifierGroups: {
+                      orderBy: (mg: any, { asc }: any) => [asc(mg.displayOrder)],
+                      with: {
+                        modifiers: {
+                          orderBy: (m: any, { asc }: any) => [asc(m.displayOrder)],
+                          with: { dependencies: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+
   create: async (payload: InsertCatalogInputType) => {
     const [inserted] = await db
       .insert(catalog)

@@ -14,6 +14,11 @@ import {
   PatchCatalogSchema,
   SelectCatalogSchema,
   SelectCategorySchema,
+  SelectCategoryProductSchema,
+  SelectProductSchema,
+  SelectModifierGroupSchema,
+  SelectModifierSchema,
+  SelectModifierOptionDependencySchema,
 } from '@repo/db/schema';
 
 import { missingIdError } from '../utils/commonErrors';
@@ -42,18 +47,53 @@ const catalogContract = oc
       .input(z.object({ id: z.uuid() }))
       .output(SelectCatalogSchema),
 
-    categories: oc
+    oneWithCategories: oc
       .route({
         method: 'GET',
         path: '/{id}/categories',
         summary: 'Retrieve a catalog with its categories',
-        description: 'Returns a catalog with all its associated categories populated.',
+        description:
+          'Returns a catalog with all its associated categories, ordered by serving order.',
       })
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }))
       .output(
         SelectCatalogSchema.extend({
           categories: z.array(SelectCategorySchema),
+        })
+      ),
+
+    oneDetailed: oc
+      .route({
+        method: 'GET',
+        path: '/{id}/detailed',
+        summary: 'Retrieve a catalog with full menu tree',
+        description:
+          'Returns a catalog with categories, products, modifier groups, modifiers, and dependencies. Designed for POS menu rendering.',
+      })
+      .errors(missingIdError)
+      .input(z.object({ id: z.uuid() }))
+      .output(
+        SelectCatalogSchema.extend({
+          categories: z.array(
+            SelectCategorySchema.extend({
+              products: z.array(
+                SelectCategoryProductSchema.extend({
+                  product: SelectProductSchema.extend({
+                    modifierGroups: z.array(
+                      SelectModifierGroupSchema.extend({
+                        modifiers: z.array(
+                          SelectModifierSchema.extend({
+                            dependencies: z.array(SelectModifierOptionDependencySchema),
+                          })
+                        ),
+                      })
+                    ),
+                  }),
+                })
+              ),
+            })
+          ),
         })
       ),
 

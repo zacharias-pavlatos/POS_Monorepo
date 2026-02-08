@@ -25,12 +25,29 @@ const catalogRouter = {
   }),
 
   /** GET /catalogs/{id}/categories — catalog with populated categories */
-  categories: organizationProcedure.catalogs.categories.handler(
+  oneWithCategories: organizationProcedure.catalogs.oneWithCategories.handler(
     async ({ context, input, errors }) => {
       const catalog = await catalogRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
       }).findByIdWithCategories(input.id);
+
+      if (!catalog) {
+        throw errors.NOT_FOUND({
+          data: { catalogId: input.id },
+        });
+      }
+      return catalog;
+    }
+  ),
+
+  /** GET /catalogs/{id}/detailed — full menu tree for POS rendering */
+  oneDetailed: organizationProcedure.catalogs.oneDetailed.handler(
+    async ({ context, input, errors }) => {
+      const catalog = await catalogRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findByIdDetailed(input.id);
 
       if (!catalog) {
         throw errors.NOT_FOUND({
