@@ -117,6 +117,15 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
 
   // ── Offer <-> Category junction ───────────────────────────────────
 
+  findCategories: (offerId: string) => {
+    return db.query.offerCategory.findMany({
+      where: and(
+        eq(offerCategory.offerId, offerId),
+        eq(offerCategory.organizationId, organizationId)
+      ),
+    });
+  },
+
   addCategory: async (payload: InsertOfferCategoryInputType) => {
     const [inserted] = await db
       .insert(offerCategory)
@@ -141,6 +150,15 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
   },
 
   // ── Offer <-> Product junction ────────────────────────────────────
+
+  findProducts: (offerId: string) => {
+    return db.query.offerProduct.findMany({
+      where: and(
+        eq(offerProduct.offerId, offerId),
+        eq(offerProduct.organizationId, organizationId)
+      ),
+    });
+  },
 
   addProduct: async (payload: InsertOfferProductInputType) => {
     const [inserted] = await db

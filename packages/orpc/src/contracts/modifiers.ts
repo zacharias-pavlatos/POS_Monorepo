@@ -46,7 +46,7 @@ const modifierContract = oc
       .input(z.object({ id: z.uuid() }))
       .output(SelectModifierSchema),
 
-    oneWithDependencies: oc
+    withDependencies: oc
       .route({
         method: 'GET',
         path: '/{id}/dependencies',

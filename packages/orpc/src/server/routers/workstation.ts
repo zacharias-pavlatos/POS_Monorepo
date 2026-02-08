@@ -1,0 +1,79 @@
+import { workstationRepository } from '@repo/db/repositories';
+
+import { organizationProcedure } from '../procedures.js';
+
+const workstationRouter = {
+  all: organizationProcedure.workstations.all.handler(({ context }) => {
+    return workstationRepository({
+      db: context.db,
+      organizationId: context.activeOrganizationId,
+    }).findAll();
+  }),
+
+  one: organizationProcedure.workstations.one.handler(
+    async ({ context, input, errors }) => {
+      const workstation = await workstationRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findById(input.id);
+
+      if (!workstation) {
+        throw errors.NOT_FOUND({
+          data: { workstationId: input.id },
+        });
+      }
+      return workstation;
+    }
+  ),
+
+  create: organizationProcedure.workstations.create.handler(
+    async ({ context, input, errors }) => {
+      const res = await workstationRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).create(input);
+
+      if (!res) {
+        throw errors.BAD_REQUEST({
+          message: 'Failed to create workstation',
+        });
+      }
+      return res;
+    }
+  ),
+
+  update: organizationProcedure.workstations.update.handler(
+    async ({ context, input, errors }) => {
+      const { id, ...data } = input;
+      const updated = await workstationRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).update(id, data);
+
+      if (!updated) {
+        throw errors.NOT_FOUND({
+          data: { workstationId: input.id },
+        });
+      }
+      return updated;
+    }
+  ),
+
+  delete: organizationProcedure.workstations.delete.handler(
+    async ({ context, input, errors }) => {
+      const res = await workstationRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).hardDelete(input.id);
+
+      if (!res) {
+        throw errors.NOT_FOUND({
+          data: { workstationId: input.id },
+        });
+      }
+      return res;
+    }
+  ),
+};
+
+export default workstationRouter;

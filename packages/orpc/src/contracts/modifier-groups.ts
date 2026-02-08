@@ -55,7 +55,7 @@ const modifierGroupContract = oc
       .input(z.object({ id: z.uuid() }))
       .output(SelectModifierGroupSchema),
 
-    oneWithModifiers: oc
+    withModifiers: oc
       .route({
         method: 'GET',
         path: '/{id}/modifiers',

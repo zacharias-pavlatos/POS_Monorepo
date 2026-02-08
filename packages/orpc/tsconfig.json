@@ -3,6 +3,12 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
+    /*
+      Override declaration to false to avoid "Exceeds the maximum length" error
+      @see: https://orpc.dev/docs/advanced/exceeds-the-maximum-length-problem
+    */
+    "declaration": false,
+    "declarationMap": false,
     "rootDir": "src",
     "outDir": "dist",
     "module": "ESNext",

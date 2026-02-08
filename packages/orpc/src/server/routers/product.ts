@@ -10,23 +10,21 @@ const productRouter = {
     }).findAll();
   }),
 
-  one: organizationProcedure.products.one.handler(
-    async ({ context, input, errors }) => {
-      const dbProduct = await productRepository({
-        db: context.db,
-        organizationId: context.activeOrganizationId,
-      }).findById(input.id);
+  one: organizationProcedure.products.one.handler(async ({ context, input, errors }) => {
+    const dbProduct = await productRepository({
+      db: context.db,
+      organizationId: context.activeOrganizationId,
+    }).findById(input.id);
 
-      if (!dbProduct) {
-        throw errors.NOT_FOUND({
-          data: {
-            productId: input.id,
-          },
-        });
-      }
-      return dbProduct;
+    if (!dbProduct) {
+      throw errors.NOT_FOUND({
+        data: {
+          productId: input.id,
+        },
+      });
     }
-  ),
+    return dbProduct;
+  }),
 
   create: organizationProcedure.products.create.handler(
     async ({ context, input, errors }) => {
@@ -68,7 +66,7 @@ const productRouter = {
       const res = await productRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
-      }).delete(input.id);
+      }).hardDelete(input.id);
 
       if (!res) {
         throw errors.NOT_FOUND({
