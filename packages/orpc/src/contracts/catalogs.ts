@@ -42,7 +42,7 @@ const catalogContract = oc
       .input(z.object({ id: z.uuid() }))
       .output(SelectCatalogSchema),
 
-    oneWithCategories: oc
+    categories: oc
       .route({
         method: 'GET',
         path: '/{id}/categories',
