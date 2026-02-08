@@ -9,9 +9,17 @@ import { oc } from '@orpc/contract';
 import { z } from 'zod';
 
 import {
-  SelectProductSchema,
   InsertProductSchema,
   PatchProductSchema,
+  SelectProductSchema,
+  SelectModifierGroupSchema,
+  SelectModifierSchema,
+  SelectModifierOptionDependencySchema,
+  SelectWorkStationSchema,
+  SelectCategoryProductSchema,
+  SelectCategorySchema,
+  SelectOfferProductSchema,
+  SelectOfferSchema,
 } from '@repo/db/schema';
 
 import { missingIdError } from '../utils/commonErrors';
@@ -29,6 +37,16 @@ const productContract = oc
       })
       .output(z.array(SelectProductSchema)),
 
+    search: oc
+      .route({
+        method: 'GET',
+        path: '/search',
+        summary: 'Search products by name',
+        description: 'Fuzzy search products by name (case-insensitive).',
+      })
+      .input(z.object({ query: z.string().min(1) }))
+      .output(z.array(SelectProductSchema)),
+
     one: oc
       .route({
         method: 'GET',
@@ -39,6 +57,62 @@ const productContract = oc
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }))
       .output(SelectProductSchema),
+
+    oneWithModifiers: oc
+      .route({
+        method: 'GET',
+        path: '/{id}/modifiers',
+        summary: 'Retrieve a product with its modifier groups and modifiers',
+        description:
+          'Returns a product with modifier groups and their options, ordered by display order.',
+      })
+      .errors(missingIdError)
+      .input(z.object({ id: z.uuid() }))
+      .output(
+        SelectProductSchema.extend({
+          modifierGroups: z.array(
+            SelectModifierGroupSchema.extend({
+              modifiers: z.array(SelectModifierSchema),
+            })
+          ),
+        })
+      ),
+
+    oneDetailed: oc
+      .route({
+        method: 'GET',
+        path: '/{id}/detailed',
+        summary:
+          'Retrieve a product with full modifier tree, workstation, categories, and offers',
+        description:
+          'Returns a product with all related data: workstation, categories, modifier groups with modifiers and dependencies, and active offers. Designed for POS and admin detail views.',
+      })
+      .errors(missingIdError)
+      .input(z.object({ id: z.uuid() }))
+      .output(
+        SelectProductSchema.extend({
+          workstation: SelectWorkStationSchema.nullable(),
+          categories: z.array(
+            SelectCategoryProductSchema.extend({
+              category: SelectCategorySchema,
+            })
+          ),
+          modifierGroups: z.array(
+            SelectModifierGroupSchema.extend({
+              modifiers: z.array(
+                SelectModifierSchema.extend({
+                  dependencies: z.array(SelectModifierOptionDependencySchema),
+                })
+              ),
+            })
+          ),
+          offers: z.array(
+            SelectOfferProductSchema.extend({
+              offer: SelectOfferSchema,
+            })
+          ),
+        })
+      ),
 
     create: oc
       .route({

@@ -61,7 +61,7 @@ export const productRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  findByIdFull: (id: string) => {
+  findByIdDetailed: (id: string) => {
     return db.query.product.findFirst({
       where: and(
         eq(product.id, id),

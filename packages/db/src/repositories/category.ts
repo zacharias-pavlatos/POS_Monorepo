@@ -63,6 +63,37 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
+  /** Full POS expansion: category → products → modifierGroups → modifiers → dependencies */
+  findByIdDetailed: (id: string) => {
+    return db.query.category.findFirst({
+      where: and(
+        eq(category.id, id),
+        eq(category.organizationId, organizationId),
+        isNull(category.deletedAt)
+      ),
+      with: {
+        products: {
+          orderBy: (cp: any, { asc }: any) => [asc(cp.displayOrder)],
+          with: {
+            product: {
+              with: {
+                modifierGroups: {
+                  orderBy: (mg: any, { asc }: any) => [asc(mg.displayOrder)],
+                  with: {
+                    modifiers: {
+                      orderBy: (m: any, { asc }: any) => [asc(m.displayOrder)],
+                      with: { dependencies: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+
   create: async (payload: InsertCategoryInputType) => {
     const [inserted] = await db
       .insert(category)
