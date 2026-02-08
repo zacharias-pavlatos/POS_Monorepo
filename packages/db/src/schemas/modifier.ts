@@ -9,7 +9,6 @@ import {
   uuid,
   boolean,
   integer,
-  pgEnum,
   pgTable,
   text,
   varchar,
@@ -25,17 +24,6 @@ import { timestamps } from './helpers';
 import { product } from './product';
 
 // ============================================================================
-// ENUMS
-// ============================================================================
-
-/**
- * Selection type for modifier groups
- * - single: Radio buttons, exactly one selection (exclusive choice)
- * - multiple: Checkboxes, multiple selections allowed
- */
-export const selectionTypeEnum = pgEnum('selection_type', ['single', 'multiple']);
-
-// ============================================================================
 // TABLES
 // ============================================================================
 
@@ -43,9 +31,9 @@ export const selectionTypeEnum = pgEnum('selection_type', ['single', 'multiple']
  * Modifier groups define a collection of related options with selection rules.
  *
  * Examples:
- * - "Size" (single, required, min=1, max=1)
- * - "Toppings" (multi, optional, min=0, max=5)
- * - "Coffee Blend" (single, required, min=1, max=1)
+ * - "Size" (required, min=1, max=1)
+ * - "Toppings" (optional, min=0, max=5)
+ * - "Coffee Blend" (required, min=1, max=1)
  */
 export const modifierGroup = pgTable(
   'modifier_group',
@@ -61,8 +49,6 @@ export const modifierGroup = pgTable(
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
 
-    /** single = radio buttons, multi = checkboxes */
-    selectionType: selectionTypeEnum('selection_type').notNull().default('single'),
     /** If true, customer must make a selection before adding to cart */
     isRequired: boolean('is_required').notNull().default(false),
     /** Minimum selections required (0 = optional, 1+ = required) */
@@ -126,50 +112,70 @@ export const modifier = pgTable(
 /**
  * Modifier Option Dependencies
  * ─────────────────────────────────────────────────────────────────────────────
- * Defines conditional relationships between modifiers for dynamic pricing
- * and visibility control.
+ * Overrides price and/or visibility of a modifier based on another
+ * modifier's selection
  *
- * CONCEPT
- * ─────────────────────────────────────────────────────────────────────────────
- * Each row defines: "When [dependsOnModifierId] is selected,
- *                    apply this [price] and [enabled] to [modifierId]"
+ * Each dependency row says:
+ *   "When THIS [dependsOnModifierId] is selected, apply this [price] and [isAvailable]
+ *    to THIS [modifierId]"
+ *
+ * Only exceptions are stored — if no matching dependency row exists for the
+ * current selection, the modifier uses its defaults:
+ *   - price       → modifier.basePrice
+ *   - isAvailable → true
+ *
+ * This means:
+ *   - A price override row is only needed when the price DIFFERS from basePrice
+ *   - A visibility row is only needed when the modifier should be HIDDEN (default is isAvailable: true)
+ *   - Rows where price = basePrice AND isAvailable = true are redundant and should be omitted
  *
  * USE CASE 1: DYNAMIC PRICING
  * ─────────────────────────────────────────────────────────────────────────────
- * Coffee variety price varies by cup size:
+ * Coffee blend price varies by cup size. Ethiopia has basePrice = 50 (€0.50).
  *
- *   modifierId     │ dependsOnModifierId │ price │ enabled
- *   ───────────────┼─────────────────────┼───────┼─────────
- *   costa-rica     │ regular             │ 2.80  │ true
- *   costa-rica     │ xlarge              │ 3.80  │ true
+ *   modifierId │ dependsOnModifierId │ price │ isAvailable
+ *   ───────────┼─────────────────────┼───────┼─────────────
+ *   Ethiopia   │ Medium              │  80   │ true
+ *   Ethiopia   │ Large               │ 130   │ true
  *
- * → Customer selects "Regular" → Costa Rica costs €2.80
- * → Customer selects "XLarge"  → Costa Rica costs €3.80
+ * → Customer selects Small  → No matching row → defaults: price=50 (€0.50)
+ * → Customer selects Medium → Match found → price=80 (€0.80)
+ * → Customer selects Large  → Match found → price=130 (€1.30)
+ *
+ * No row for Ethiopia+Small because the override price (50) would equal
+ * basePrice (50) — the default already gives the correct result.
  *
  * USE CASE 2: CONDITIONAL VISIBILITY
  * ─────────────────────────────────────────────────────────────────────────────
  * Sugar type hidden when "No Sugar" is selected:
  *
- *   modifierId     │ dependsOnModifierId │ price │ enabled
- *   ───────────────┼─────────────────────┼───────┼─────────
- *   white-sugar    │ sweet               │ 0.00  │ true
- *   white-sugar    │ medium              │ 0.00  │ true
- *   white-sugar    │ none                │ 0.00  │ false   ← hidden
+ *   modifierId  │ dependsOnModifierId │ price │ isAvailable
+ *   ────────────┼─────────────────────┼───────┼────────
+ *   White Sugar │ No Sugar            │ 0     │ false
+ *   Brown Sugar │ No Sugar            │ 0     │ false
+ *   Stevia      │ No Sugar            │ 0     │ false
  *
  * → Customer selects "Sweet"  → White Sugar is visible
- * → Customer selects "None"   → White Sugar is hidden
+ * → Customer selects "No Sugar" → White Sugar is hidden
  *
- * RESOLUTION LOGIC
- * ─────────────────────────────────────────────────────────────────────────────
- * 1. Get all dependencies for the modifier
- * 2. Find the one where `dependsOnModifierId` matches a selected modifier
- * 3. If found → use that row's `price` and `enabled`
- * 4. If not found → use modifier's default `priceAdjustment`, enabled = true
  *
  * GROUP VISIBILITY (derived)
  * ─────────────────────────────────────────────────────────────────────────────
- * A group is visible if ANY of its modifiers resolve to enabled = true.
- * No separate table needed.
+ * A group is visible if ANY of its modifiers resolves to isAvailable=true.
+ * No separate table needed — the API resolves each modifier in the group
+ * and hides the group when all resolve to isAvailable=false.
+ *
+ * RESOLUTION LOGIC
+ * ─────────────────────────────────────────────────────────────────────────────
+ * For each modifier:
+ *   1. Find a dependency row where dependsOnModifierId matches a currently selected modifier
+ *   2. If found → use that row's price and isAvailable values
+ *   3. If not found → use modifier.basePrice and isAvailable=true
+ *
+ * For each group:
+ *   1. Resolve all modifiers in the group
+ *   2. If at least one resolves to isAvailable=true → group is visible
+ *   3. If all resolve to isAvailable=false → group is hidden
  */
 
 export const modifierOptionDependency = pgTable(
@@ -189,10 +195,10 @@ export const modifierOptionDependency = pgTable(
       .notNull()
       .references(() => modifier.id, { onDelete: 'cascade' }),
 
-    /* Price to use when this dependency is active (overrides priceAdjustment)- stored in cents to avoid floating point issues */
+    /* Price to use when this dependency is active (overrides basePrice)- stored in cents to avoid floating point issues */
     price: integer('price').notNull().default(0),
     /** If false, the modifier is hidden/disabled */
-    enabled: boolean('enabled').notNull().default(true),
+    isAvailable: boolean('is_available').notNull().default(true),
 
     ...timestamps,
   },
@@ -313,6 +319,7 @@ export const InsertModifierOptionDependencySchema = createInsertSchema(
     price: field => field.int().min(0).optional(),
   }
 ).omit({
+  organizationId: true,
   createdAt: true,
   updatedAt: true,
   deletedAt: true,

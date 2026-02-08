@@ -250,7 +250,7 @@ export const modifierOptionDependencyRepository = ({
 
   /**
    * Resolve: given a modifier and the currently selected modifiers,
-   * find the matching dependency row (for price/enabled override).
+   * find the matching dependency row (for price/isAvailable override).
    * Returns null if no dependency matches (use modifier defaults).
    */
   resolve: async (modifierId: string, selectedModifierIds: string[]) => {
