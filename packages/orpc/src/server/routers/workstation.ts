@@ -26,6 +26,40 @@ const workstationRouter = {
     }
   ),
 
+  /** GET /workstations/{id}/categories — workstation with assigned categories */
+  oneWithCategories: organizationProcedure.workstations.oneWithCategories.handler(
+    async ({ context, input, errors }) => {
+      const workstation = await workstationRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findByIdWithCategories(input.id);
+
+      if (!workstation) {
+        throw errors.NOT_FOUND({
+          data: { workstationId: input.id },
+        });
+      }
+      return workstation;
+    }
+  ),
+
+  /** GET /workstations/{id}/detailed — workstation with categories + products */
+  oneDetailed: organizationProcedure.workstations.oneDetailed.handler(
+    async ({ context, input, errors }) => {
+      const workstation = await workstationRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findByIdDetailed(input.id);
+
+      if (!workstation) {
+        throw errors.NOT_FOUND({
+          data: { workstationId: input.id },
+        });
+      }
+      return workstation;
+    }
+  ),
+
   create: organizationProcedure.workstations.create.handler(
     async ({ context, input, errors }) => {
       const res = await workstationRepository({

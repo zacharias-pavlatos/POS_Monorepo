@@ -48,6 +48,35 @@ export const workstationRepository = ({ db, organizationId }: TenantContext) => 
     });
   },
 
+  /** Workstation with assigned categories */
+  findByIdWithCategories: (id: string) => {
+    return db.query.workStation.findFirst({
+      where: and(
+        eq(workStation.id, id),
+        eq(workStation.organizationId, organizationId),
+        isNull(workStation.deletedAt)
+      ),
+      with: {
+        categories: true,
+      },
+    });
+  },
+
+  /** Workstation with categories and products assigned to it */
+  findByIdDetailed: (id: string) => {
+    return db.query.workStation.findFirst({
+      where: and(
+        eq(workStation.id, id),
+        eq(workStation.organizationId, organizationId),
+        isNull(workStation.deletedAt)
+      ),
+      with: {
+        categories: true,
+        products: true,
+      },
+    });
+  },
+
   create: async (payload: InsertWorkStationInputType) => {
     const [inserted] = await db
       .insert(workStation)

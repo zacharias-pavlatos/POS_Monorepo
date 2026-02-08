@@ -13,6 +13,8 @@ import {
   InsertWorkStationSchema,
   PatchWorkStationSchema,
   SelectWorkStationSchema,
+  SelectCategorySchema,
+  SelectProductSchema,
 } from '@repo/db/schema';
 
 import { missingIdError } from '../utils/commonErrors';
@@ -40,6 +42,38 @@ const workstationContract = oc
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }))
       .output(SelectWorkStationSchema),
+
+    oneWithCategories: oc
+      .route({
+        method: 'GET',
+        path: '/{id}/categories',
+        summary: 'Retrieve a workstation with its assigned categories',
+        description: 'Returns a workstation with all categories routed to this station.',
+      })
+      .errors(missingIdError)
+      .input(z.object({ id: z.uuid() }))
+      .output(
+        SelectWorkStationSchema.extend({
+          categories: z.array(SelectCategorySchema),
+        })
+      ),
+
+    oneDetailed: oc
+      .route({
+        method: 'GET',
+        path: '/{id}/detailed',
+        summary: 'Retrieve a workstation with categories and products',
+        description:
+          'Returns a workstation with all assigned categories and products. Useful for kitchen display setup.',
+      })
+      .errors(missingIdError)
+      .input(z.object({ id: z.uuid() }))
+      .output(
+        SelectWorkStationSchema.extend({
+          categories: z.array(SelectCategorySchema),
+          products: z.array(SelectProductSchema),
+        })
+      ),
 
     create: oc
       .route({
