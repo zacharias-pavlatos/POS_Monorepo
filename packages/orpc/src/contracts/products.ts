@@ -1,9 +1,16 @@
+/**
+ * /products
+ *
+ * Menu items that can be sold. Products belong to categories
+ * and can have modifier groups for customization options.
+ */
+
 import { oc } from '@orpc/contract';
 import { z } from 'zod';
 
 import {
-  InsertProductSchema,
   SelectProductSchema,
+  InsertProductSchema,
   PatchProductSchema,
 } from '@repo/db/schema';
 
@@ -18,7 +25,7 @@ const productContract = oc
         method: 'GET',
         path: '/',
         summary: 'List all products',
-        description: 'Retrieve all products from the organization',
+        description: 'Retrieve all products for the organization.',
       })
       .output(z.array(SelectProductSchema)),
 
@@ -27,21 +34,17 @@ const productContract = oc
         method: 'GET',
         path: '/{id}',
         summary: 'Retrieve a product',
-        description: 'Returns a single product by its unique identifier',
+        description: 'Returns a single product by its unique identifier.',
       })
       .errors(missingIdError)
-      .input(
-        z.object({
-          id: z.uuid(),
-        })
-      )
+      .input(z.object({ id: z.uuid() }))
       .output(SelectProductSchema),
 
     create: oc
       .route({
         method: 'POST',
         path: '/',
-        summary: 'Create a new product.',
+        summary: 'Create a new product',
         description: 'Creates a new product. Products are the items that can be sold.',
       })
       .input(InsertProductSchema)
@@ -51,9 +54,9 @@ const productContract = oc
       .route({
         method: 'PATCH',
         path: '/{id}',
-        summary: 'Update a product.',
+        summary: 'Update a product',
         description:
-          'Partially updates an existing product. Only provided fields will be modified; omitted fields remain unchanged.',
+          'Partially updates an existing product. Only provided fields will be modified.',
       })
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }).and(PatchProductSchema))

@@ -58,7 +58,6 @@ const categoryRouter = {
           },
         });
       }
-
       return updated;
     }
   ),
@@ -68,7 +67,7 @@ const categoryRouter = {
       const res = await categoryRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
-      }).delete(input.id);
+      }).hardDelete(input.id);
 
       if (!res) {
         throw errors.NOT_FOUND({

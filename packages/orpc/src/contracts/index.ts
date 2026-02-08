@@ -1,7 +1,14 @@
 import { oc } from '@orpc/contract';
 
+import restaurantContract from './restaurants';
+import workstationContract from './workstations';
+import catalogContract from './catalogs';
 import categoryContract from './categories';
 import productContract from './products';
+import modifierGroupContract from './modifier-groups';
+import modifierContract from './modifiers';
+import modifierDependencyContract from './modifier-dependencies';
+import offerContract from './offers';
 
 export const appContract = oc
   .errors({
@@ -30,6 +37,13 @@ export const appContract = oc
     },
   })
   .router({
+    restaurant: restaurantContract,
+    workstations: workstationContract,
+    catalogs: catalogContract,
     categories: categoryContract,
     products: productContract,
+    modifierGroups: modifierGroupContract,
+    modifiers: modifierContract,
+    modifierDependencies: modifierDependencyContract,
+    offers: offerContract,
   });
