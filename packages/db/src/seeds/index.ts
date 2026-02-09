@@ -1,31 +1,32 @@
 /* eslint-disable no-console */
-import seedCategory from "./category";
+import seedCatalog from './catalog';
+import seedRestaurants from './restaurant';
+import seedWorkstations from './workstation';
+import seedCategories from './category';
+import seedProducts from './product';
+import seedModifiers from './modifier';
+import seedOffers from './offer';
 
-const seeders = {
-  category: seedCategory,
-};
+async function seed() {
+  console.log('🌱 Seeding database...');
 
-const tableToSeed = process.argv[2];
-// TODO: USE DRIZZLE SEED NOT THIS SHIT !!!!
+  try {
+    // Note: Organization is expected to exist (created by auth/init)
+    // If you need to seed a fresh organization, creating a separate seed file is recommended.
 
-async function main() {
-  if (!tableToSeed) {
-    console.log("🌱 Seeding all tables...");
-    for (const [name, seeder] of Object.entries(seeders)) {
-      await seeder();
-      console.log(`✓ ${name}`);
-    }
-    return;
-  }
+    await seedRestaurants();
+    await seedWorkstations();
+    await seedCatalog();
+    await seedCategories();
+    await seedProducts();
+    await seedModifiers();
+    await seedOffers();
 
-  const seeder = seeders[tableToSeed as keyof typeof seeders];
-  if (!seeder) {
-    console.error(`✗ Unknown table: ${tableToSeed}`);
-    console.warn(`Available: ${Object.keys(seeders).join(", ")}`);
+    console.log('✓ Seeding complete!');
+  } catch (err) {
+    console.error('❌ Seeding failed:', err);
     process.exit(1);
   }
-
-  await seeder();
 }
 
-main().catch(console.error);
+seed();

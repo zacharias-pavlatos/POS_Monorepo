@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Margherita",
+    "description": "Tomato sauce, mozzarella, fresh basil",
+    "basePrice": 800,
+    "categoryNames": ["Pizza"],
+    "isActive": true
+  },
+  {
+    "name": "Pepperoni",
+    "description": "Tomato sauce, mozzarella, spicy salami",
+    "basePrice": 1000,
+    "categoryNames": ["Pizza"],
+    "isActive": true
+  },
+  {
+    "name": "Carbonara",
+    "description": "Spaghetti, guanciale, egg, pecorino, black pepper",
+    "basePrice": 1200,
+    "categoryNames": ["Pasta", "Main Courses"],
+    "isActive": true
+  },
+  {
+    "name": "Greek Salad",
+    "description": "Tomatoes, cucumbers, olives, feta cheese, oregano",
+    "basePrice": 900,
+    "categoryNames": ["Salads", "Appetizers"],
+    "isActive": true
+  },
+  {
+    "name": "Tiramisu",
+    "description": "Classic Italian dessert",
+    "basePrice": 600,
+    "categoryNames": ["Desserts"],
+    "isActive": true
+  },
+  {
+    "name": "Espresso",
+    "description": "Single shot espresso",
+    "basePrice": 250,
+    "categoryNames": ["Coffee", "Drinks"],
+    "isActive": true
+  },
+  {
+    "name": "Cappuccino",
+    "description": "Espresso with steamed milk foam",
+    "basePrice": 350,
+    "categoryNames": ["Coffee"],
+    "isActive": true
+  },
+  {
+    "name": "Cola",
+    "description": "Sparkling soft drink",
+    "basePrice": 200,
+    "categoryNames": ["Drinks"],
+    "isActive": true
+  }
+]

@@ -13,6 +13,7 @@ import {
   text,
   uuid,
   varchar,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { organization } from './auth-schema';
 import { timestamps } from './helpers';
@@ -73,6 +74,11 @@ export const product = pgTable(
     index('idx_product_org_name').on(table.organizationId, table.name),
     /* Optimizes: Get products by workstation */
     index('idx_product_workstation').on(table.workstationId),
+    /**
+     * Ensures product names are unique per organization.
+     * Prevents duplicate products.
+     */
+    uniqueIndex('product_org_name_unique').on(table.organizationId, table.name),
   ]
 );
 

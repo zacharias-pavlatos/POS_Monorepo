@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Main Menu",
+    "description": "Our primary menu available all day",
+    "internalNotes": "Standard offerings",
+    "displayOrder": 0,
+    "availableFrom": null,
+    "availableUntil": null,
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "color": "#4a90e2",
+    "isActive": true
+  },
+  {
+    "name": "Breakfast",
+    "description": "Morning specials and coffee",
+    "internalNotes": "Served until 11am",
+    "displayOrder": 1,
+    "availableFrom": "06:00:00",
+    "availableUntil": "11:00:00",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "color": "#f5a623",
+    "isActive": true
+  },
+  {
+    "name": "Lunch",
+    "description": "Mid-day meals",
+    "internalNotes": "Weekdays only",
+    "displayOrder": 2,
+    "availableFrom": "11:00:00",
+    "availableUntil": "15:00:00",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4],
+    "color": "#7ed321",
+    "isActive": true
+  },
+  {
+    "name": "Dinner",
+    "description": "Evening dining and drinks",
+    "internalNotes": null,
+    "displayOrder": 3,
+    "availableFrom": "17:00:00",
+    "availableUntil": "22:00:00",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "color": "#9013fe",
+    "isActive": true
+  },
+  {
+    "name": "Seasonal Specials",
+    "description": "Limited time offers",
+    "internalNotes": "Summer 2024",
+    "displayOrder": 4,
+    "availableFrom": null,
+    "availableUntil": null,
+    "activeDaysOfWeek": [4, 5, 6],
+    "color": "#d0021b",
+    "isActive": false
+  }
+]

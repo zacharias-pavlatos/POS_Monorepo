@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Bar",
+    "description": "Beverages and Cocktails",
+    "displayOrder": 0,
+    "color": "#9B59B6",
+    "isActive": true
+  },
+  {
+    "name": "Main Kitchen",
+    "description": "Hot food preparation",
+    "displayOrder": 1,
+    "color": "#FF5733",
+    "isActive": true
+  },
+  {
+    "name": "Cold Station",
+    "description": "Salads and cold appetizers",
+    "displayOrder": 2,
+    "color": "#3498DB",
+    "isActive": true
+  },
+  {
+    "name": "Pizza Oven",
+    "description": "Pizza preparation area",
+    "displayOrder": 3,
+    "color": "#E67E22",
+    "isActive": true
+  }
+]

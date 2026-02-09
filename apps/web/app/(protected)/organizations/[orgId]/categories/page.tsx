@@ -4,8 +4,7 @@ import { categoriesCollection } from '@/collections/categories';
 import { rpcClient } from '@/lib/rpc-client';
 import { useLiveQuery } from '@tanstack/react-db';
 import { useState } from 'react';
-import { CreateOrganizationForm } from '@/components/forms/create-organization-form'
-import { CreateProductForm } from '@/components/forms/create-product-form'
+import { CreateProductForm } from '@/components/forms/create-product-form';
 
 export default function CategoriesPage() {
   const [name, setName] = useState('');
@@ -46,8 +45,6 @@ export default function CategoriesPage() {
         onChange={e => setName(e.target.value)}
       />
       <button onClick={() => createCategory(name)}>Add category</button>
-
-
       <CreateProductForm />
     </div>
   );

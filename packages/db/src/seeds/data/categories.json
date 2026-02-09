@@ -1,8 +1,82 @@
 [
-  { "name": "Appetizers" },
-  { "name": "Drinks" },
-  { "name": "Traditional" },
-  { "name": "Salads" },
-  { "name": "Fish" },
-  { "name": "Desserts" }
+  {
+    "name": "Appetizers",
+    "description": "Starters to begin your meal",
+    "servingOrder": 0,
+    "workstationName": "Cold Station",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Salads",
+    "description": "Fresh and healthy salads",
+    "servingOrder": 1,
+    "workstationName": "Cold Station",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Pizza",
+    "description": "Our famous wood-fired pizzas",
+    "servingOrder": 2,
+    "workstationName": "Pizza Oven",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Pasta",
+    "description": "Fresh handmade pasta",
+    "servingOrder": 3,
+    "workstationName": "Main Kitchen",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Main Courses",
+    "description": "Hearty meat and fish dishes",
+    "servingOrder": 4,
+    "workstationName": "Main Kitchen",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Desserts",
+    "description": "Sweet treats",
+    "servingOrder": 5,
+    "workstationName": "Cold Station",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Drinks",
+    "description": "Refreshing beverages",
+    "servingOrder": 6,
+    "workstationName": "Bar",
+    "catalogName": "Main Menu",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  },
+  {
+    "name": "Coffee",
+    "description": "Hot and cold coffees",
+    "servingOrder": 7,
+    "workstationName": "Bar",
+    "catalogName": "Breakfast",
+    "activeFrom": "2024-01-01T00:00:00Z",
+    "activeDaysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+    "isActive": true
+  }
 ]

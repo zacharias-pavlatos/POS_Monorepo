@@ -1,4 +1,5 @@
 // import CreateInvitation from './_components/create-organization';
+import { CreateOrganizationForm } from '@/components/forms/create-organization-form';
 import SelectOrganization from './_components/select-organization';
 
 export default async function OrganizationsPage() {
@@ -8,6 +9,7 @@ export default async function OrganizationsPage() {
     <>
       {/* <CreateInvitation />; */}
       <SelectOrganization />
+      <CreateOrganizationForm />
     </>
   );
 }

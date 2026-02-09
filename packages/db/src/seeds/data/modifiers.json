@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Size",
+    "productName": "Cappuccino",
+    "minSelections": 1,
+    "maxSelections": 1,
+    "isRequired": true,
+    "modifiers": [
+      { "name": "Small", "basePrice": -200, "isDefault": false },
+      { "name": "Medium", "basePrice": 0, "isDefault": true },
+      { "name": "Large", "basePrice": 400, "isDefault": false }
+    ]
+  },
+  {
+    "name": "Extra Toppings",
+    "productName": "Margherita",
+    "minSelections": 0,
+    "maxSelections": 3,
+    "isRequired": false,
+    "modifiers": [
+      { "name": "Extra Cheese", "basePrice": 150 },
+      { "name": "Mushrooms", "basePrice": 100 },
+      { "name": "Onions", "basePrice": 50 }
+    ]
+  },
+  {
+    "name": "Sugar",
+    "productName": "Espresso",
+    "minSelections": 1,
+    "maxSelections": 1,
+    "isRequired": true,
+    "modifiers": [
+      { "name": "No Sugar", "basePrice": 0, "isDefault": true },
+      { "name": "Medium", "basePrice": 0 },
+      { "name": "Sweet", "basePrice": 0 }
+    ]
+  }
+]

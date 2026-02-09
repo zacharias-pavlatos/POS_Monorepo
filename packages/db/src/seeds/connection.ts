@@ -13,4 +13,5 @@ import env from '@/lib/env';
 
 import * as schema from '../schemas';
 
+console.log('DATABASE_URL->', env.DATABASE_URL);
 export const db = drizzle(neon(env.DATABASE_URL!), { schema });

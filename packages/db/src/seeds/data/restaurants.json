@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Pizza Paradise",
+    "description": "Authentic Italian Pizza",
+    "cuisineType": "Italian",
+    "website": "https://pizzaparadise.com",
+    "countryCode": "GR",
+    "vatNumber": "EL123456789",
+    "taxOffice": "Athens A",
+    "profession": "Restaurant",
+    "currency": "EUR",
+    "state": "Attica",
+    "city": "Athens",
+    "streetAddress": "Ermou 123",
+    "zipCode": "10563",
+    "longitude": "23.7275",
+    "latitude": "37.9838",
+    "phoneNumber": "+30 210 1234567",
+    "email": "info@pizzaparadise.com",
+    "isActive": true
+  }
+]
