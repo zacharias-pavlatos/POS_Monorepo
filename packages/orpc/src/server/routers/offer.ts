@@ -1,6 +1,6 @@
 import { offerRepository } from '@repo/db/repositories';
 
-import { organizationProcedure } from '../procedures.js';
+import { organizationProcedure } from '../procedures';
 
 const offerRouter = {
   all: organizationProcedure.offers.all.handler(({ context }) => {

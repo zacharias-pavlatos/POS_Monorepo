@@ -1,6 +1,6 @@
 import { workstationRepository } from '@repo/db/repositories';
 
-import { organizationProcedure } from '../procedures.js';
+import { organizationProcedure } from '../procedures';
 
 const workstationRouter = {
   all: organizationProcedure.workstations.all.handler(({ context }) => {

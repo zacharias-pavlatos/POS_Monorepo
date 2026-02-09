@@ -1,6 +1,6 @@
 import { modifierGroupRepository } from '@repo/db/repositories';
 
-import { organizationProcedure } from '../procedures.js';
+import { organizationProcedure } from '../procedures';
 
 const modifierGroupRouter = {
   all: organizationProcedure.modifierGroups.all.handler(({ context }) => {
@@ -37,7 +37,7 @@ const modifierGroupRouter = {
   ),
 
   /** GET /modifier-groups/{id}/modifiers — group with modifiers + dependencies (POS checkout) */
-  withModifiers: organizationProcedure.modifierGroups.withModifiers.handler(
+  oneWithModifiers: organizationProcedure.modifierGroups.oneWithModifiers.handler(
     async ({ context, input, errors }) => {
       const group = await modifierGroupRepository({
         db: context.db,

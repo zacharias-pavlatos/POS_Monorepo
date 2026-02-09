@@ -1,6 +1,6 @@
 import { productRepository } from '@repo/db/repositories';
 
-import { organizationProcedure } from '../procedures.js';
+import { organizationProcedure } from '../procedures';
 
 const productRouter = {
   all: organizationProcedure.products.all.handler(({ context }) => {

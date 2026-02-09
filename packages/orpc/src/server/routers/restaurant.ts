@@ -1,6 +1,6 @@
 import { restaurantRepository } from '@repo/db/repositories';
 
-import { organizationProcedure } from '../procedures.js';
+import { organizationProcedure } from '../procedures';
 
 const restaurantRouter = {
   get: organizationProcedure.restaurant.get.handler(async ({ context, errors }) => {
