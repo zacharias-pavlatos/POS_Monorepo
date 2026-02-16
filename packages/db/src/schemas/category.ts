@@ -24,8 +24,8 @@ import type { z } from 'zod';
 
 import { organization } from './auth-schema';
 import { product } from './product';
-import workstation from './workstation';
-import catalog from './catalog';
+import { workstation } from './workstation';
+import { catalog } from './catalog';
 import { timestamps } from './helpers';
 import { offerCategory } from './offer';
 
@@ -71,9 +71,9 @@ export const category = pgTable(
     servingOrder: integer('serving_order').notNull().default(0),
 
     /* Category becomes active from this date */
-    activeFrom: timestamp('active_from').notNull(),
+    activeFrom: timestamp('active_from', { withTimezone: true }).notNull(),
     /* Category expires on this date (null = no expiration) */
-    activeUntil: timestamp('active_until'),
+    activeUntil: timestamp('active_until', { withTimezone: true }),
     /* Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday) */
     activeDaysOfWeek: integer('active_days_of_week').array(),
     /* Daily start time "HH:MM:SS" */
@@ -229,5 +229,3 @@ export type PatchCategoryInputType = z.infer<typeof PatchCategorySchema>;
 export type SelectCategoryProductType = z.infer<typeof SelectCategoryProductSchema>;
 export type InsertCategoryProductInputType = z.infer<typeof InsertCategoryProductSchema>;
 export type PatchCategoryProductInputType = z.infer<typeof PatchCategoryProductSchema>;
-
-export default category;

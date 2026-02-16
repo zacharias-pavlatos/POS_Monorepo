@@ -203,5 +203,3 @@ export const InsertOrderDiscountSchema = createInsertSchema(orderDiscount, {
 
 export type SelectOrderDiscountType = typeof orderDiscount.$inferSelect;
 export type InsertOrderDiscountInputType = z.infer<typeof InsertOrderDiscountSchema>;
-
-export default orderDiscount;

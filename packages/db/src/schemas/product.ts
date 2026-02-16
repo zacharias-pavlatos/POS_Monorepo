@@ -22,7 +22,7 @@ import { modifierGroup } from './modifier';
 import type { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categoryProduct } from './category';
-import workstation from './workstation';
+import { workstation } from './workstation';
 import { offerProduct } from './offer';
 
 // ==========================================================================

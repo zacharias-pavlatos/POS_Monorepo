@@ -351,5 +351,3 @@ export type InsertModifierOptionDependencyInputType = z.infer<
 export type PatchModifierOptionDependencyInputType = z.infer<
   typeof PatchModifierOptionDependencySchema
 >;
-
-export default modifierGroup;

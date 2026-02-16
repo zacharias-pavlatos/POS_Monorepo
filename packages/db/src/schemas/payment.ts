@@ -106,7 +106,7 @@ export const payment = pgTable(
       .references(() => user.id, { onDelete: 'restrict' }),
 
     /** When the payment was processed */
-    processedAt: timestamp('processed_at').notNull().defaultNow(),
+    processedAt: timestamp('processed_at', { withTimezone: true }).notNull().defaultNow(),
     ...timestamps,
   },
   table => [

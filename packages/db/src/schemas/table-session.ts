@@ -18,14 +18,28 @@ import {
   integer,
   uniqueIndex,
   index,
+  pgEnum,
+  timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import type { z } from 'zod';
 
-import { organization } from './auth-schema';
-import { table } from './table';
+import { organization, user } from './auth-schema';
+import { diningTable } from './table';
 import { timestamps } from './helpers';
+import { order } from './order';
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+export const tableSessionStatusEnum = pgEnum('table_session_status', [
+  'active',
+  'closed',
+  'voided',
+  'done',
+]);
 
 // ============================================================================
 // TABLES
@@ -44,13 +58,21 @@ export const tableSession = pgTable(
      * - active: ongoing seating
      * - closed: fully completed (paid & done)
      */
-    status: varchar('status', { length: 20 }).notNull().default('active'),
+    status: tableSessionStatusEnum('status').notNull().default('active'),
     /** Optional label (e.g., "VIP Dinner", "Birthday") */
     name: varchar('name', { length: 255 }),
     /** Guest count at start (can be updated during service) */
     guestCount: integer('guest_count').notNull().default(1),
+
+    openedAt: timestamp('opened_at', { withTimezone: true }),
     /** Optional: who opened the session (string because Better Auth org/user ids are text) */
-    openedByUserId: text('opened_by_user_id'),
+    openedByUserId: text('opened_by_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
+    closedByUserId: text('closed_by_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
 
     ...timestamps,
   },
@@ -72,7 +94,7 @@ export const tableSessionTable = pgTable(
       .references(() => tableSession.id, { onDelete: 'cascade' }),
     tableId: uuid('table_id')
       .notNull()
-      .references(() => table.id, { onDelete: 'cascade' }),
+      .references(() => diningTable.id, { onDelete: 'cascade' }),
 
     ...timestamps,
   },
@@ -98,6 +120,7 @@ export const tableSessionRelations = relations(tableSession, ({ one, many }) => 
     references: [organization.id],
   }),
   tables: many(tableSessionTable),
+  orders: many(order),
 }));
 
 export const tableSessionTableRelations = relations(tableSessionTable, ({ one }) => ({
@@ -109,9 +132,9 @@ export const tableSessionTableRelations = relations(tableSessionTable, ({ one })
     fields: [tableSessionTable.tableSessionId],
     references: [tableSession.id],
   }),
-  table: one(table, {
+  table: one(diningTable, {
     fields: [tableSessionTable.tableId],
-    references: [table.id],
+    references: [diningTable.id],
   }),
 }));
 
@@ -156,5 +179,3 @@ export type InsertTableSessionTableInputType = z.infer<
 export type PatchTableSessionTableInputType = z.infer<
   typeof PatchTableSessionTableSchema
 >;
-
-export default tableSession;

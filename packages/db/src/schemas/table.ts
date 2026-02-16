@@ -42,8 +42,8 @@ import { zone } from './zone';
  * - "T5-6" (capacity: 8, zone: "Ground Floor", merged tables)
  * - "Bar 1" (capacity: 1, zone: "Bar")
  */
-export const table = pgTable(
-  'table',
+export const diningTable = pgTable(
+  'dining_table',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: text('organization_id')
@@ -86,13 +86,13 @@ export const table = pgTable(
 // RELATIONS
 // ============================================================================
 
-export const tableRelations = relations(table, ({ one }) => ({
+export const tableRelations = relations(diningTable, ({ one }) => ({
   organization: one(organization, {
-    fields: [table.organizationId],
+    fields: [diningTable.organizationId],
     references: [organization.id],
   }),
   zone: one(zone, {
-    fields: [table.zoneId],
+    fields: [diningTable.zoneId],
     references: [zone.id],
   }),
 }));
@@ -101,8 +101,8 @@ export const tableRelations = relations(table, ({ one }) => ({
 // SCHEMA VALIDATION
 // ============================================================================
 
-export const SelectTableSchema = createSelectSchema(table);
-export const InsertTableSchema = createInsertSchema(table, {
+export const SelectDiningTableSchema = createSelectSchema(diningTable);
+export const InsertDiningTableSchema = createInsertSchema(diningTable, {
   label: field => field.min(1).max(50),
   capacity: field => field.int().min(1).optional(),
   displayOrder: field => field.int().min(0).optional(),
@@ -112,14 +112,12 @@ export const InsertTableSchema = createInsertSchema(table, {
   updatedAt: true,
   deletedAt: true,
 });
-export const PatchTableSchema = InsertTableSchema.partial();
+export const PatchDiningTableSchema = InsertDiningTableSchema.partial();
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type SelectTableType = z.infer<typeof SelectTableSchema>;
-export type InsertTableInputType = z.infer<typeof InsertTableSchema>;
-export type PatchTableInputType = z.infer<typeof PatchTableSchema>;
-
-export default table;
+export type SelectDiningTableType = z.infer<typeof SelectDiningTableSchema>;
+export type InsertDiningTableInputType = z.infer<typeof InsertDiningTableSchema>;
+export type PatchDiningTableInputType = z.infer<typeof PatchDiningTableSchema>;

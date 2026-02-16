@@ -47,7 +47,7 @@ import product from './product';
  * - "Cold Kitchen" (color: "#3498DB")
  * - "Bar" (color: "#9B59B6")
  */
-export const workStation = pgTable(
+export const workstation = pgTable(
   'workstation',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -85,7 +85,7 @@ export const workStation = pgTable(
 // RELATIONS
 // ============================================================================
 
-export const workStationRelations = relations(workStation, ({ many }) => ({
+export const workStationRelations = relations(workstation, ({ many }) => ({
   categories: many(category), // Categories assigned to this station
   products: many(product), // Products assigned to this station
 }));
@@ -94,8 +94,8 @@ export const workStationRelations = relations(workStation, ({ many }) => ({
 // SCHEMA VALIDATION
 // ============================================================================
 
-export const SelectWorkStationSchema = createSelectSchema(workStation);
-export const InsertWorkStationSchema = createInsertSchema(workStation, {
+export const SelectWorkStationSchema = createSelectSchema(workstation);
+export const InsertWorkStationSchema = createInsertSchema(workstation, {
   name: field => field.min(1).max(255),
   description: field => field.max(1000).optional(),
   displayOrder: field => field.int().min(0).optional(),
@@ -119,5 +119,3 @@ export const PatchWorkStationSchema = InsertWorkStationSchema.partial();
 export type SelectWorkStationType = z.infer<typeof SelectWorkStationSchema>;
 export type InsertWorkStationInputType = z.infer<typeof InsertWorkStationSchema>;
 export type PatchWorkStationInputType = z.infer<typeof PatchWorkStationSchema>;
-
-export default workStation;

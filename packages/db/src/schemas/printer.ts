@@ -36,7 +36,7 @@ import type { z } from 'zod';
 
 import { organization } from './auth-schema';
 import { timestamps } from './helpers';
-import { workStation } from './workstation';
+import { workstation } from './workstation';
 
 // ============================================================================
 // ENUMS
@@ -121,7 +121,7 @@ export const printer = pgTable(
      * - set: kitchen printer for this workstation
      * - null: receipt printer (not tied to a workstation)
      */
-    workstationId: uuid('workstation_id').references(() => workStation.id, {
+    workstationId: uuid('workstation_id').references(() => workstation.id, {
       onDelete: 'set null',
     }),
 
@@ -150,9 +150,9 @@ export const printerRelations = relations(printer, ({ one }) => ({
     fields: [printer.organizationId],
     references: [organization.id],
   }),
-  workstation: one(workStation, {
+  workstation: one(workstation, {
     fields: [printer.workstationId],
-    references: [workStation.id],
+    references: [workstation.id],
   }),
 }));
 
@@ -181,5 +181,3 @@ export const PatchPrinterSchema = InsertPrinterSchema.partial();
 export type SelectPrinterType = typeof printer.$inferSelect;
 export type InsertPrinterInputType = z.infer<typeof InsertPrinterSchema>;
 export type PatchPrinterInputType = z.infer<typeof PatchPrinterSchema>;
-
-export default printer;

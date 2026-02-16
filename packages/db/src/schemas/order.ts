@@ -34,9 +34,10 @@ import type { z } from 'zod';
 
 import { organization, user } from './auth-schema';
 import { timestamps } from './helpers';
-import { table } from './table';
+import { diningTable } from './table';
 import { product } from './product';
 import { modifier } from './modifier';
+import { tableSession } from './table-session';
 
 // ============================================================================
 // ENUMS
@@ -94,13 +95,17 @@ export const order = pgTable(
       .references(() => organization.id, { onDelete: 'cascade' }),
     tableId: uuid('table_id')
       .notNull()
-      .references(() => table.id, { onDelete: 'restrict' }),
+      .references(() => diningTable.id, { onDelete: 'restrict' }),
+    tableSessionId: uuid('table_session_id')
+      .notNull()
+      .references(() => tableSession.id, { onDelete: 'restrict' }),
 
     /**
      * Auto-incrementing order number per organization.
      * Used for display: "Order #42". Resets are NOT automatic —
      * use a separate sequence or daily counter if needed.
      */
+    // TODO: Make this unique per organization
     orderNumber: serial('order_number').notNull(),
 
     /** Waiter who opened the order (first interaction with the table) */
@@ -133,14 +138,19 @@ export const order = pgTable(
     /** Number of guests at the table (for covers/per-head reporting) */
     guestCount: integer('guest_count').notNull().default(1),
 
-    openedAt: timestamp('opened_at').notNull().defaultNow(),
-    closedAt: timestamp('closed_at'),
+    openedAt: timestamp('opened_at', { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
 
     ...timestamps,
   },
   table => [
-    /* Optimizes: Get open orders for a table (should be 0 or 1) */
-    index('idx_order_table_status').on(table.tableId, table.status),
+    // uniqueIndex('order_one_open_per_session')
+    //   .on(table.tableSessionId)
+    //   .where(sql`${table.status} = 'open' and ${table.deletedAt} is null`),
+
+    /* One open order per session (enforce in app logic or partial unique if you want) */
+    index('idx_order_session_status').on(table.tableSessionId, table.status),
+
     /* Optimizes: Get all orders for organization, most recent first */
     index('idx_order_org_opened').on(table.organizationId, table.openedAt),
     /* Optimizes: Get orders by status (e.g., all open orders for dashboard) */
@@ -218,12 +228,12 @@ export const orderItem = pgTable(
     /** Item-level notes (e.g., "no onions", "extra spicy") */
     notes: text('notes'),
     /** When this item should become visible on the KDS. */
-    firedAt: timestamp('fired_at'),
+    firedAt: timestamp('fired_at', { withTimezone: true }),
 
     // ── VOID / CANCEL (accountability) ───────────────────────────────
 
     /** When this item was voided/cancelled */
-    voidedAt: timestamp('voided_at'),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
     /** Staff member who voided/cancelled the item */
     voidedById: text('voided_by_id').references(() => user.id, {
       onDelete: 'set null',
@@ -300,9 +310,9 @@ export const orderRelations = relations(order, ({ one, many }) => ({
     fields: [order.organizationId],
     references: [organization.id],
   }),
-  table: one(table, {
-    fields: [order.tableId],
-    references: [table.id],
+  tableSession: one(tableSession, {
+    fields: [order.tableSessionId],
+    references: [tableSession.id],
   }),
   openedBy: one(user, {
     fields: [order.openedById],
@@ -429,5 +439,3 @@ export type SelectOrderItemModifierType = typeof orderItemModifier.$inferSelect;
 export type InsertOrderItemModifierInputType = z.infer<
   typeof InsertOrderItemModifierSchema
 >;
-
-export default order;

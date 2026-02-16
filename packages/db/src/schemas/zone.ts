@@ -27,7 +27,7 @@ import type { z } from 'zod';
 
 import { organization } from './auth-schema';
 import { timestamps } from './helpers';
-import { table } from './table';
+import { diningTable } from './table';
 // ============================================================================
 // TABLES
 // ============================================================================
@@ -66,12 +66,12 @@ export const zone = pgTable(
      * Ensures area names are unique per organization.
      * Prevents duplicate areas like two "Terrace" in same restaurant.
      */
-    uniqueIndex('area_org_name_unique').on(table.organizationId, table.name),
+    uniqueIndex('zone_org_name_unique').on(table.organizationId, table.name),
 
     /* Optimizes: Get all active areas for organization */
-    index('idx_area_org_active').on(table.organizationId, table.isActive),
+    index('idx_zone_org_active').on(table.organizationId, table.isActive),
     /* Optimizes: Get areas ordered by display order */
-    index('idx_area_org_order').on(table.organizationId, table.displayOrder),
+    index('idx_zone_org_order').on(table.organizationId, table.displayOrder),
   ]
 );
 
@@ -79,21 +79,21 @@ export const zone = pgTable(
 // RELATIONS
 // ============================================================================
 
-export const areaRelations = relations(zone, ({ one, many }) => ({
+export const zoneRelations = relations(zone, ({ one, many }) => ({
   organization: one(organization, {
     fields: [zone.organizationId],
     references: [organization.id],
   }),
   /** Tables located in this area */
-  tables: many(table),
+  tables: many(diningTable),
 }));
 
 // ============================================================================
 // SCHEMA VALIDATION
 // ============================================================================
 
-export const SelectAreaSchema = createSelectSchema(zone);
-export const InsertAreaSchema = createInsertSchema(zone, {
+export const SelectZoneSchema = createSelectSchema(zone);
+export const InsertZoneSchema = createInsertSchema(zone, {
   name: field => field.min(1).max(255),
   description: field => field.max(1000).optional(),
   displayOrder: field => field.int().min(0).optional(),
@@ -108,14 +108,12 @@ export const InsertAreaSchema = createInsertSchema(zone, {
   updatedAt: true,
   deletedAt: true,
 });
-export const PatchAreaSchema = InsertAreaSchema.partial();
+export const PatchZoneSchema = InsertZoneSchema.partial();
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type SelectAreaType = z.infer<typeof SelectAreaSchema>;
-export type InsertAreaInputType = z.infer<typeof InsertAreaSchema>;
-export type PatchAreaInputType = z.infer<typeof PatchAreaSchema>;
-
-export default zone;
+export type SelectZoneType = z.infer<typeof SelectZoneSchema>;
+export type InsertZoneInputType = z.infer<typeof InsertZoneSchema>;
+export type PatchZoneInputType = z.infer<typeof PatchZoneSchema>;

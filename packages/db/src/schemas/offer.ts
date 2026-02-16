@@ -94,9 +94,9 @@ export const offer = pgTable(
     scope: offerScopeEnum('scope').notNull(),
 
     /* Offer becomes active from this date */
-    validFrom: timestamp('valid_from').notNull(),
+    validFrom: timestamp('valid_from', { withTimezone: true }).notNull(),
     /* Offer expires on this date (null = no expiration) */
-    validUntil: timestamp('valid_until'),
+    validUntil: timestamp('valid_until', { withTimezone: true }),
     /* Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday) */
     activeDaysOfWeek: integer('active_days_of_week').array(),
     /* Daily start time "HH:MM:SS" */
@@ -303,5 +303,3 @@ export type PatchOfferCategoryInputType = z.infer<typeof PatchOfferCategorySchem
 export type SelectOfferProductType = typeof offerProduct.$inferSelect;
 export type InsertOfferProductInputType = z.infer<typeof InsertOfferProductSchema>;
 export type PatchOfferProductInputType = z.infer<typeof PatchOfferProductSchema>;
-
-export default offer;

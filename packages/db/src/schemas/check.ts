@@ -125,9 +125,9 @@ export const check = pgTable(
     /** optimistic locking for split/move operations */
     version: integer('version').notNull().default(1),
     /** when set: check becomes immutable (first completed payment) */
-    frozenAt: timestamp('frozen_at'),
+    frozenAt: timestamp('frozen_at', { withTimezone: true }),
     /** when set: check is paid */
-    paidAt: timestamp('paid_at'),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
 
     ...timestamps,
   },
@@ -189,12 +189,16 @@ export const checkItem = pgTable(
 );
 
 /**
- * Check-level discounts — applied AFTER splitting, at payment time.
+ * Check-level discounts — applied AFTER splitting, before or during payment.
  *
- * Minimal table: checks are at the end of the line.
- * No priority/stacking snapshots — applied sequentially.
- * No revoke fields — delete row + recalculate + audit log.
- * No updatedAt — these rows don't get edited.
+ * These discounts affect only a specific check (not the whole order).
+ * They are applied after order-level discounts are distributed.
+ *
+ * Discounts can stack and respect priority rules (from catalog offers).
+ * No revoke fields — remove row + recalculate + audit log.
+ *
+ * Once the check is frozen (first completed payment),
+ * discount rows must no longer be modified.
  *
  * Examples:
  * - "5% staff discount on Maria's check only"

@@ -128,5 +128,3 @@ export const PatchCatalogSchema = InsertCatalogSchema.partial();
 export type SelectCatalogType = z.infer<typeof SelectCatalogSchema>;
 export type InsertCatalogInputType = z.infer<typeof InsertCatalogSchema>;
 export type PatchCatalogInputType = z.infer<typeof PatchCatalogSchema>;
-
-export default catalog;

@@ -165,5 +165,3 @@ export const PatchRestaurantSchema = InsertRestaurantSchema.partial();
 export type SelectRestaurantType = typeof restaurant.$inferSelect;
 export type InsertRestaurantInputType = z.infer<typeof InsertRestaurantSchema>;
 export type PatchRestaurantInputType = z.infer<typeof PatchRestaurantSchema>;
-
-export default restaurant;
