@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+
+import seedDevUser from './user';
 import seedCatalog from './catalog';
 import seedRestaurants from './restaurant';
 import seedWorkstations from './workstation';
@@ -13,7 +15,7 @@ async function seed() {
   try {
     // Note: Organization is expected to exist (created by auth/init)
     // If you need to seed a fresh organization, creating a separate seed file is recommended.
-
+    await seedDevUser();
     await seedRestaurants();
     await seedWorkstations();
     await seedCatalog();

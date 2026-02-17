@@ -9,6 +9,7 @@ export const auth = createAuth({
   baseURL: env.SERVER_URL + '/auth',
   authSecret: env.BETTER_AUTH_SECRET,
   db,
+  enableEmailPasswordAuth: env.NODE_ENV === 'development',
   socialProviders: {
     google: {
       clientId: env.GOOGLE_CLIENT_ID,

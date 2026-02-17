@@ -6,6 +6,8 @@
  * - PostgreSQL database via Drizzle adapter
  * - Organization plugin for team/workspace management
  * - OpenAPI plugin for auto-generated API documentation
+ * - Email/password authentication (configurable for dev environments)
+ *   we seed the user in the db. NO ui sign up form is needed
  *
  * @remarks
  * By default, Better Auth enables all core endpoints (email/password auth, social login, etc.)
@@ -32,17 +34,20 @@ export interface AuthOptions {
   authSecret: string;
   db: DatabaseInstance;
   socialProviders?: BetterAuthOptions['socialProviders'];
+  enableEmailPasswordAuth: boolean;
 }
 
-/**
- * This function is abstracted for schema generations in cli-config.ts
- */
-export const getBaseOptions = (db: DatabaseInstance) =>
+export const getBaseOptions = (
+  db: DatabaseInstance,
+  enableEmailPasswordAuth: boolean
+): BetterAuthOptions =>
   ({
     database: drizzleAdapter(db, {
       provider: 'pg',
     }),
-
+    emailAndPassword: {
+      enabled: enableEmailPasswordAuth,
+    },
     plugins: [
       openAPI({
         path: '/docs',
@@ -60,9 +65,10 @@ export const createAuth = ({
   db,
   authSecret,
   socialProviders,
+  enableEmailPasswordAuth,
 }: AuthOptions): AuthInstance => {
   return betterAuth({
-    ...getBaseOptions(db),
+    ...getBaseOptions(db, enableEmailPasswordAuth),
     baseURL,
     secret: authSecret,
     trustedOrigins: [webUrl],
@@ -70,7 +76,7 @@ export const createAuth = ({
     session: {
       cookieCache: {
         enabled: true,
-        maxAge: 2 * 60,
+        maxAge: 2 * 60, // 2 minutes
       },
     },
   });
