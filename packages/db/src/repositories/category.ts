@@ -142,6 +142,8 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
 
   // ── Category <-> Product junction ─────────────────────────────────
 
+  //TODO:  Insert product by categoryId and productId
+
   addProduct: async (payload: InsertCategoryProductInputType) => {
     const [inserted] = await db
       .insert(categoryProduct)

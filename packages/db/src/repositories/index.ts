@@ -11,3 +11,5 @@ export {
   modifierOptionDependencyRepository,
 } from './modifier';
 export { offerRepository } from './offer';
+
+export { checkRepository } from './check';

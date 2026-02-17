@@ -29,6 +29,7 @@ import type { z } from 'zod';
 import { organization } from './auth-schema';
 import { timestamps } from './helpers';
 import { zone } from './zone';
+import { tableSessionTable } from './table-session';
 
 // ============================================================================
 // TABLES
@@ -86,7 +87,7 @@ export const diningTable = pgTable(
 // RELATIONS
 // ============================================================================
 
-export const tableRelations = relations(diningTable, ({ one }) => ({
+export const tableRelations = relations(diningTable, ({ one, many }) => ({
   organization: one(organization, {
     fields: [diningTable.organizationId],
     references: [organization.id],
@@ -95,6 +96,7 @@ export const tableRelations = relations(diningTable, ({ one }) => ({
     fields: [diningTable.zoneId],
     references: [zone.id],
   }),
+  sessionTables: many(tableSessionTable),
 }));
 
 // ============================================================================

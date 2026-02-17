@@ -1,7 +1,6 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 
 import { zone } from '../schemas/zone';
-import { diningTable } from '../schemas/table';
 import type { InsertZoneInputType, PatchZoneInputType } from '../schemas/zone';
 import type { TenantContext } from './types';
 
@@ -84,8 +83,6 @@ export const zoneRepository = ({ db, organizationId }: TenantContext) => ({
   /**
    * Floor plan with occupancy status.
    * Zones → tables → active session membership → session → open orders.
-   *
-   * Requires `sessionTables: many(tableSessionTable)` on diningTable relations.
    */
   findAllWithOccupancy: () => {
     return db.query.zone.findMany({
@@ -117,27 +114,6 @@ export const zoneRepository = ({ db, organizationId }: TenantContext) => ({
         },
       },
     });
-  },
-
-  /** Table count per zone (admin dashboard summary) */
-  countTablesByZone: async () => {
-    return db
-      .select({
-        zoneId: zone.id,
-        zoneName: zone.name,
-        tableCount: sql<number>`count(${diningTable.id})`.as('table_count'),
-        totalCapacity: sql<number>`coalesce(sum(${diningTable.capacity}), 0)`.as(
-          'total_capacity'
-        ),
-      })
-      .from(zone)
-      .leftJoin(
-        diningTable,
-        and(eq(diningTable.zoneId, zone.id), isNull(diningTable.deletedAt))
-      )
-      .where(and(eq(zone.organizationId, organizationId), isNull(zone.deletedAt)))
-      .groupBy(zone.id, zone.name)
-      .orderBy(zone.displayOrder);
   },
 
   // ── Mutations ───────────────────────────────────────────────────────

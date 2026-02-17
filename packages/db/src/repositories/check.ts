@@ -32,16 +32,6 @@ export const checkRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  findAllOpen: () => {
-    return db.query.check.findMany({
-      where: and(
-        eq(check.organizationId, organizationId),
-        eq(check.status, 'open'),
-        isNull(check.deletedAt)
-      ),
-    });
-  },
-
   findByStatus: (status: 'open' | 'partially_paid' | 'paid' | 'voided') => {
     return db.query.check.findMany({
       where: and(
