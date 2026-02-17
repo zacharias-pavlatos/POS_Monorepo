@@ -1,0 +1,127 @@
+# 
+# API Smoke Tests – Better Auth 
+#  
+# What this file is for:
+#   - Quick sanity checks for the auth server and session-based authentication.
+#   - A repeatable “happy path” flow: Health → Login → Session → Logout.
+#   - Uses REST Client’s cookie jar to persist the Better Auth session cookie between requests.
+#  
+#  How to use:
+#   1) Run “Health Check” to confirm the server is up.
+#   2) Run “Login” (expects 200 + Set-Cookie).
+#   3) Run “Session” to confirm you are authenticated.
+#   4) Run “Logout” to clear the session.
+#  
+#   Important:
+#   - Better Auth enforces Origin/CSRF checks, so every auth request includes:
+#       Origin: {{origin}}
+#       Referer: {{origin}}/
+#   - Keep {{baseUrl}} and {{origin}} aligned with your actual dev ports.
+#   - Use the same host consistently (localhost vs 127.0.0.1) or cookies won’t match.
+#  
+#  Variables:
+#   - @baseUrl: backend/auth server base URL
+#   - @origin: frontend origin allowed by Better Auth (trusted origin)
+#   - @cookieJar: name of the cookie jar used by REST Client
+#  
+#   @see http://localhost:3001/auth/docs
+#  
+
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+@authPrefix = auth
+
+
+### Health Check - Is the server running? - ok
+GET {{baseUrl}}/{{authPrefix}}/ok
+
+### Login - ok
+POST {{baseUrl}}/{{authPrefix}}/sign-in/email
+Content-Type: application/json
+Origin: {{origin}}
+
+{
+  "email": "dev@test.com",
+  "password": "developer123",
+  "callbackURL": "",
+  "rememberMe": true
+}
+
+
+### Session (proof you’re logged in) - ok
+GET {{baseUrl}}/{{authPrefix}}/get-session
+Origin: {{origin}}
+
+
+### Logout - ok
+POST {{baseUrl}}/{{authPrefix}}/sign-out
+Content-Type: application/json
+Origin: {{origin}}
+
+{}
+
+
+### All Organizations - ok
+GET {{baseUrl}}/{{authPrefix}}/organization/list
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+### Create Organization - ok
+# The user id of the organization creator. If not provided, the current user will be used.
+POST {{baseUrl}}/{{authPrefix}}/organization/create
+Content-Type: application/json
+Origin: {{origin}}
+
+{
+  "name": "Test Organization 2",
+  "slug": "test-org-2",
+  # "userId": "",
+  # "logo": "",
+  # "metadata": "",
+  "keepCurrentActiveOrganization": true
+}
+
+
+### Get Active Organization - ok
+GET {{baseUrl}}/{{authPrefix}}/organization/get-full-organization
+Origin: {{origin}}
+
+
+### Set Active Organization - ok
+POST {{baseUrl}}/{{authPrefix}}/organization/set-active
+Content-Type: application/json
+Origin: {{origin}}
+
+{
+  # Can be null to unset the active organization
+  "organizationId": "ysMQ1D8z0sFLhbLFBCy8kz3Xc6vO3Vsu"
+}
+
+
+### Update Organization - ok
+POST {{baseUrl}}/{{authPrefix}}/organization/update
+Content-Type: application/json
+Origin: {{origin}}
+
+{
+  "data": {
+    "name": "Test Organization 1 Updated",
+    "slug": "test-org-1-updated",
+    "logo": "",
+    "metadata": {}
+  },
+  "organizationId": "ysMQ1D8z0sFLhbLFBCy8kz3Xc6vO3Vsu"
+}
+
+
+### Delete Organization - ok
+POST {{baseUrl}}/{{authPrefix}}/organization/delete
+Content-Type: application/json
+Origin: {{origin}}
+
+{
+  "organizationId": "G1J3xiNwVX4ZjV8jxWynnIjBa16UEmIy"
+}

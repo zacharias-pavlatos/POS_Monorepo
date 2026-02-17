@@ -1,0 +1,85 @@
+# Workstations API – REST Client
+#
+# Endpoints: /workstations
+# Purpose:
+# - Kitchen/bar preparation stations for order routing.
+# - Categories/products are assigned to stations so orders go to the right prep area.
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{workstationId}} with a UUID from list/create responses.
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@workstationId = 822a1d97-d515-4de6-8271-1c33ba8842f0
+
+
+# ========================================
+# WORKSTATIONS
+# ========================================
+
+### List all workstations - ok
+GET {{baseUrl}}{{apiPrefix}}/workstations
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a workstation by id - ok
+GET {{baseUrl}}{{apiPrefix}}/workstations/{{workstationId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a workstation with assigned categories 
+GET {{baseUrl}}{{apiPrefix}}/workstations/{{workstationId}}/categories
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a workstation with categories and products (detailed)
+GET {{baseUrl}}{{apiPrefix}}/workstations/{{workstationId}}/detailed
+Origin: {{origin}}
+Referer: {{origin}}/
+
+###
+# ========================================
+# MUTATIONS
+# ========================================
+# Body shapes must match InsertWorkStationSchema / PatchWorkStationSchema.
+
+### Create a workstation - ok
+POST {{baseUrl}}{{apiPrefix}}/workstations
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Bar",
+  "description": "Bar workstation"
+}
+
+### Patch/update a workstation (only include fields you want to change) - ok
+PATCH {{baseUrl}}{{apiPrefix}}/workstations/{{workstationId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Kitchen - Main"
+}
+
+### Delete a workstation - ok
+DELETE {{baseUrl}}{{apiPrefix}}/workstations/{{workstationId}}
+Origin: {{origin}}
+Referer: {{origin}}/
