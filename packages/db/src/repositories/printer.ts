@@ -1,10 +1,7 @@
 import { and, eq, isNull, isNotNull } from 'drizzle-orm';
 
 import { printer } from '../schemas/printer';
-import type {
-  InsertPrinterInputType,
-  PatchPrinterInputType,
-} from '../schemas/printer';
+import type { InsertPrinterInputType, PatchPrinterInputType } from '../schemas/printer';
 import type { TenantContext } from './types';
 
 export const printerRepository = ({ db, organizationId }: TenantContext) => ({
@@ -12,10 +9,7 @@ export const printerRepository = ({ db, organizationId }: TenantContext) => ({
 
   findAll: () => {
     return db.query.printer.findMany({
-      where: and(
-        eq(printer.organizationId, organizationId),
-        isNull(printer.deletedAt)
-      ),
+      where: and(eq(printer.organizationId, organizationId), isNull(printer.deletedAt)),
     });
   },
 
@@ -91,7 +85,7 @@ export const printerRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  /** All printers for a workstation (includes backups) */
+  /** All printers for a workstation */
   findAllByWorkstation: (workstationId: string) => {
     return db.query.printer.findMany({
       where: and(
@@ -119,10 +113,7 @@ export const printerRepository = ({ db, organizationId }: TenantContext) => ({
   /** All printers with their workstation (admin management view) */
   findAllWithWorkstation: () => {
     return db.query.printer.findMany({
-      where: and(
-        eq(printer.organizationId, organizationId),
-        isNull(printer.deletedAt)
-      ),
+      where: and(eq(printer.organizationId, organizationId), isNull(printer.deletedAt)),
       with: { workstation: true },
     });
   },
@@ -170,9 +161,7 @@ export const printerRepository = ({ db, organizationId }: TenantContext) => ({
   hardDelete: async (id: string) => {
     const [deleted] = await db
       .delete(printer)
-      .where(
-        and(eq(printer.id, id), eq(printer.organizationId, organizationId))
-      )
+      .where(and(eq(printer.id, id), eq(printer.organizationId, organizationId)))
       .returning();
     return deleted ?? null;
   },

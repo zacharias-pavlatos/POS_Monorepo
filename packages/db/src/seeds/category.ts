@@ -1,5 +1,5 @@
 import { db } from './connection';
-import { category, catalog, workStation } from '../schemas';
+import { category, catalog, workstation } from '../schemas';
 import categories from './data/categories.json';
 import { eq, and } from 'drizzle-orm';
 
@@ -19,10 +19,10 @@ export default async function seedCategories() {
       });
 
       // Find workstation
-      const workstationRecord = await db.query.workStation.findFirst({
+      const workstationRecord = await db.query.workstation.findFirst({
         where: and(
-          eq(workStation.organizationId, org.id),
-          eq(workStation.name, cat.workstationName)
+          eq(workstation.organizationId, org.id),
+          eq(workstation.name, cat.workstationName)
         ),
       });
 

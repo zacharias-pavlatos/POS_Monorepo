@@ -85,7 +85,7 @@ export const workstation = pgTable(
 // RELATIONS
 // ============================================================================
 
-export const workStationRelations = relations(workstation, ({ many }) => ({
+export const workstationRelations = relations(workstation, ({ many }) => ({
   categories: many(category), // Categories assigned to this station
   products: many(product), // Products assigned to this station
 }));

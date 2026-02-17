@@ -1,5 +1,5 @@
 import { db } from './connection';
-import { workStation } from '../schemas';
+import { workstation } from '../schemas';
 import workstations from './data/workstations.json';
 
 export default async function seedWorkstations() {
@@ -16,10 +16,10 @@ export default async function seedWorkstations() {
   }));
 
   await db
-    .insert(workStation)
+    .insert(workstation)
     .values(data)
     .onConflictDoNothing({
-      target: [workStation.organizationId, workStation.name],
+      target: [workstation.organizationId, workstation.name],
     });
 
   console.log(`✓ seeded ${data.length} workstations`);
