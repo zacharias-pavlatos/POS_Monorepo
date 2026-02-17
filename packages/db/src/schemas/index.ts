@@ -23,3 +23,5 @@ export * from './order';
 export * from './check';
 export * from './payment';
 export * from './printer';
+export * from './table-session';
+export * from './order-discount';

@@ -1,6 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm';
 
-import { workStation } from '../schemas/workstation';
+import { workstation } from '../schemas/workstation';
 import type {
   InsertWorkStationInputType,
   PatchWorkStationInputType,
@@ -9,52 +9,52 @@ import type { TenantContext } from './types';
 
 export const workstationRepository = ({ db, organizationId }: TenantContext) => ({
   findAll: () => {
-    return db.query.workStation.findMany({
+    return db.query.workstation.findMany({
       where: and(
-        eq(workStation.organizationId, organizationId),
-        isNull(workStation.deletedAt)
+        eq(workstation.organizationId, organizationId),
+        isNull(workstation.deletedAt)
       ),
     });
   },
 
   findById: (id: string) => {
-    return db.query.workStation.findFirst({
+    return db.query.workstation.findFirst({
       where: and(
-        eq(workStation.id, id),
-        eq(workStation.organizationId, organizationId),
-        isNull(workStation.deletedAt)
+        eq(workstation.id, id),
+        eq(workstation.organizationId, organizationId),
+        isNull(workstation.deletedAt)
       ),
     });
   },
 
   findByName: (name: string) => {
-    return db.query.workStation.findFirst({
+    return db.query.workstation.findFirst({
       where: and(
-        eq(workStation.organizationId, organizationId),
-        eq(workStation.name, name),
-        isNull(workStation.deletedAt)
+        eq(workstation.organizationId, organizationId),
+        eq(workstation.name, name),
+        isNull(workstation.deletedAt)
       ),
     });
   },
 
   findAllActive: () => {
-    return db.query.workStation.findMany({
+    return db.query.workstation.findMany({
       where: and(
-        eq(workStation.organizationId, organizationId),
-        eq(workStation.isActive, true),
-        isNull(workStation.deletedAt)
+        eq(workstation.organizationId, organizationId),
+        eq(workstation.isActive, true),
+        isNull(workstation.deletedAt)
       ),
-      orderBy: workStation.displayOrder,
+      orderBy: workstation.displayOrder,
     });
   },
 
   /** Workstation with assigned categories */
   findByIdWithCategories: (id: string) => {
-    return db.query.workStation.findFirst({
+    return db.query.workstation.findFirst({
       where: and(
-        eq(workStation.id, id),
-        eq(workStation.organizationId, organizationId),
-        isNull(workStation.deletedAt)
+        eq(workstation.id, id),
+        eq(workstation.organizationId, organizationId),
+        isNull(workstation.deletedAt)
       ),
       with: {
         categories: true,
@@ -64,11 +64,11 @@ export const workstationRepository = ({ db, organizationId }: TenantContext) => 
 
   /** Workstation with categories and products assigned to it */
   findByIdDetailed: (id: string) => {
-    return db.query.workStation.findFirst({
+    return db.query.workstation.findFirst({
       where: and(
-        eq(workStation.id, id),
-        eq(workStation.organizationId, organizationId),
-        isNull(workStation.deletedAt)
+        eq(workstation.id, id),
+        eq(workstation.organizationId, organizationId),
+        isNull(workstation.deletedAt)
       ),
       with: {
         categories: true,
@@ -79,7 +79,7 @@ export const workstationRepository = ({ db, organizationId }: TenantContext) => 
 
   create: async (payload: InsertWorkStationInputType) => {
     const [inserted] = await db
-      .insert(workStation)
+      .insert(workstation)
       .values({ ...payload, organizationId })
       .returning();
     return inserted;
@@ -87,13 +87,13 @@ export const workstationRepository = ({ db, organizationId }: TenantContext) => 
 
   update: async (id: string, payload: PatchWorkStationInputType) => {
     const [updated] = await db
-      .update(workStation)
+      .update(workstation)
       .set(payload)
       .where(
         and(
-          eq(workStation.id, id),
-          eq(workStation.organizationId, organizationId),
-          isNull(workStation.deletedAt)
+          eq(workstation.id, id),
+          eq(workstation.organizationId, organizationId),
+          isNull(workstation.deletedAt)
         )
       )
       .returning();
@@ -102,13 +102,13 @@ export const workstationRepository = ({ db, organizationId }: TenantContext) => 
 
   softDelete: async (id: string) => {
     const [deleted] = await db
-      .update(workStation)
+      .update(workstation)
       .set({ deletedAt: new Date() })
       .where(
         and(
-          eq(workStation.id, id),
-          eq(workStation.organizationId, organizationId),
-          isNull(workStation.deletedAt)
+          eq(workstation.id, id),
+          eq(workstation.organizationId, organizationId),
+          isNull(workstation.deletedAt)
         )
       )
       .returning();
@@ -117,8 +117,8 @@ export const workstationRepository = ({ db, organizationId }: TenantContext) => 
 
   hardDelete: async (id: string) => {
     const [deleted] = await db
-      .delete(workStation)
-      .where(and(eq(workStation.id, id), eq(workStation.organizationId, organizationId)))
+      .delete(workstation)
+      .where(and(eq(workstation.id, id), eq(workstation.organizationId, organizationId)))
       .returning();
     return deleted ?? null;
   },

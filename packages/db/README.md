@@ -21,6 +21,7 @@ DB package for pos_monorepo
 - [x] payments
 - [x] workstations
 - [x] printers
+- [ ] audit_logs    
 
 - [ ] Tags ?
 - [ ] Alergies / Vegeterian / Vegan / Halal / Kosher

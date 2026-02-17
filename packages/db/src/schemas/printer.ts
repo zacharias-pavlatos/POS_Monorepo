@@ -65,7 +65,6 @@ export const printerConnectionTypeEnum = pgEnum('printer_connection_type', [
  *
  * Kitchen printer:
  *   name: "Kitchen Printer"
- *   type: "kitchen"
  *   connectionType: "network"
  *   ipAddress: "192.168.1.100", port: 9100
  *   model: "Epson TM-T88VI"
@@ -73,7 +72,6 @@ export const printerConnectionTypeEnum = pgEnum('printer_connection_type', [
  *
  * Bar printer:
  *   name: "Bar Printer"
- *   type: "kitchen"
  *   connectionType: "network"
  *   ipAddress: "192.168.1.101", port: 9100
  *   model: "Star TSP143IV"
@@ -81,7 +79,6 @@ export const printerConnectionTypeEnum = pgEnum('printer_connection_type', [
  *
  * Receipt printer:
  *   name: "Front Counter Receipt"
- *   type: "receipt"
  *   connectionType: "usb"
  *   ipAddress: null, port: null
  *   model: "Epson TM-T20III"

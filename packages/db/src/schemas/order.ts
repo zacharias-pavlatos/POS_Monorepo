@@ -38,6 +38,8 @@ import { diningTable } from './table';
 import { product } from './product';
 import { modifier } from './modifier';
 import { tableSession } from './table-session';
+import { orderDiscount } from './order-discount';
+import { check, checkItem } from './check';
 
 // ============================================================================
 // ENUMS
@@ -93,9 +95,9 @@ export const order = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
-    tableId: uuid('table_id')
-      .notNull()
-      .references(() => diningTable.id, { onDelete: 'restrict' }),
+    // tableId: uuid('table_id')
+    //   .notNull()
+    //   .references(() => diningTable.id, { onDelete: 'restrict' }),
     tableSessionId: uuid('table_session_id')
       .notNull()
       .references(() => tableSession.id, { onDelete: 'restrict' }),
@@ -318,8 +320,9 @@ export const orderRelations = relations(order, ({ one, many }) => ({
     fields: [order.openedById],
     references: [user.id],
   }),
-  /** Items in this order */
   items: many(orderItem),
+  discounts: many(orderDiscount),
+  checks: many(check),
 }));
 
 export const orderItemRelations = relations(orderItem, ({ one, many }) => ({
@@ -331,7 +334,6 @@ export const orderItemRelations = relations(orderItem, ({ one, many }) => ({
     fields: [orderItem.orderId],
     references: [order.id],
   }),
-  /** Reference to catalog product (for analytics) */
   product: one(product, {
     fields: [orderItem.productId],
     references: [product.id],
@@ -340,10 +342,10 @@ export const orderItemRelations = relations(orderItem, ({ one, many }) => ({
     fields: [orderItem.addedById],
     references: [user.id],
   }),
-  /** Modifier selections for this item */
   modifiers: many(orderItemModifier),
+  discounts: many(orderDiscount),
+  checkItems: many(checkItem),
 }));
-
 export const orderItemModifierRelations = relations(orderItemModifier, ({ one }) => ({
   organization: one(organization, {
     fields: [orderItemModifier.organizationId],
