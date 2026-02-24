@@ -32,6 +32,22 @@ const offerRouter = {
     return offer;
   }),
 
+  oneDetailed: organizationProcedure.offers.oneDetailed.handler(
+    async ({ context, input, errors }) => {
+      const offer = await offerRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findByIdWithTargets(input.id);
+
+      if (!offer) {
+        throw errors.NOT_FOUND({
+          data: { offerId: input.id },
+        });
+      }
+      return offer;
+    }
+  ),
+
   create: organizationProcedure.offers.create.handler(
     async ({ context, input, errors }) => {
       const res = await offerRepository({

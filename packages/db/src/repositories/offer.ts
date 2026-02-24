@@ -1,4 +1,4 @@
-import { and, eq, isNull, gte, lte, or } from 'drizzle-orm';
+import { and, eq, isNull, gte, lte, or, desc } from 'drizzle-orm';
 
 import { offer, offerCategory, offerProduct } from '../schemas/offer';
 import type {
@@ -10,9 +10,12 @@ import type {
 import type { TenantContext } from './types';
 
 export const offerRepository = ({ db, organizationId }: TenantContext) => ({
+  // ── Offers ─────────────────────────────────────────────────────────
+
   findAll: () => {
     return db.query.offer.findMany({
       where: and(eq(offer.organizationId, organizationId), isNull(offer.deletedAt)),
+      orderBy: [desc(offer.priority), desc(offer.createdAt)],
     });
   },
 
@@ -26,17 +29,20 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  findByName: (name: string) => {
+  findByIdWithTargets: (id: string) => {
     return db.query.offer.findFirst({
       where: and(
+        eq(offer.id, id),
         eq(offer.organizationId, organizationId),
-        eq(offer.name, name),
         isNull(offer.deletedAt)
       ),
+      with: {
+        categories: { with: { category: true } },
+        products: { with: { product: true } },
+      },
     });
   },
 
-  /** Get active offers whose validity window covers right now. */
   findCurrentlyActive: () => {
     const now = new Date();
     return db.query.offer.findMany({
@@ -47,21 +53,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
         or(isNull(offer.validUntil), gte(offer.validUntil, now)),
         isNull(offer.deletedAt)
       ),
-      orderBy: offer.priority,
-      with: {
-        categories: { with: { category: true } },
-        products: { with: { product: true } },
-      },
-    });
-  },
-
-  findByIdWithTargets: (id: string) => {
-    return db.query.offer.findFirst({
-      where: and(
-        eq(offer.id, id),
-        eq(offer.organizationId, organizationId),
-        isNull(offer.deletedAt)
-      ),
+      orderBy: [desc(offer.priority), desc(offer.createdAt)],
       with: {
         categories: { with: { category: true } },
         products: { with: { product: true } },
@@ -80,7 +72,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
   update: async (id: string, payload: PatchOfferInputType) => {
     const [updated] = await db
       .update(offer)
-      .set(payload)
+      .set({ ...payload, updatedAt: new Date() })
       .where(
         and(
           eq(offer.id, id),
@@ -95,7 +87,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
   softDelete: async (id: string) => {
     const [deleted] = await db
       .update(offer)
-      .set({ deletedAt: new Date() })
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(
         and(
           eq(offer.id, id),
@@ -115,7 +107,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
     return deleted ?? null;
   },
 
-  // ── Offer <-> Category junction ───────────────────────────────────
+  // ── Offer <-> Category ─────────────────────────────────────────────
 
   findCategories: (offerId: string) => {
     return db.query.offerCategory.findMany({
@@ -123,6 +115,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
         eq(offerCategory.offerId, offerId),
         eq(offerCategory.organizationId, organizationId)
       ),
+      with: { category: true },
     });
   },
 
@@ -149,7 +142,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
     return deleted ?? null;
   },
 
-  // ── Offer <-> Product junction ────────────────────────────────────
+  // ── Offer <-> Product ──────────────────────────────────────────────
 
   findProducts: (offerId: string) => {
     return db.query.offerProduct.findMany({
@@ -157,6 +150,7 @@ export const offerRepository = ({ db, organizationId }: TenantContext) => ({
         eq(offerProduct.offerId, offerId),
         eq(offerProduct.organizationId, organizationId)
       ),
+      with: { product: true },
     });
   },
 

@@ -1,15 +1,3 @@
-/**
- * Offer System - Restaurant Promotions & Discounts
- *
- * Supports:
- * - Happy hours (time-based discounts)
- * - BOGO deals (buy one get one)
- * - Category-wide offers (all drinks 20% off)
- * - Product-specific offers (espresso €1 off)
- * - Order-level discounts (€5 off orders over €30)
- * - Stackable and priority-based promotions
- */
-
 import {
   pgTable,
   text,
@@ -44,7 +32,6 @@ export const discountTypeEnum = pgEnum('discount_type', [
   'percentage', // 20% off
   'fixed_amount', // €5 off
   'fixed_price', // Set price to €10
-  'bogo', // Buy one get one (percentage off on qualifying items)
 ]);
 
 /**
@@ -65,7 +52,6 @@ export const offerScopeEnum = pgEnum('offer_scope', [
  *
  * Examples:
  * - Happy Hour: 20% off all drinks 5-7pm weekdays
- * - BOGO Burgers: Buy one burger, get one 50% off
  * - Summer Special: €5 off orders over €30
  * - Lunch Deal: Any pasta fixed price €8 (11am-3pm)
  */
@@ -80,16 +66,17 @@ export const offer = pgTable(
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
 
-    /* Type of discount: percentage, fixed_amount, fixed_price, or bogo */
+    /* Type of discount: percentage, fixed_amount, or fixed_price */
     discountType: discountTypeEnum('discount_type').notNull(),
+
     /**
      * Discount value - interpretation depends on discountType:
      * - percentage: 20 = 20% off
      * - fixed_amount: 500 = €5.00 off (in cents)
      * - fixed_price: 800 = €8.00 final price (in cents)
-     * - bogo: 50 = 50% off second item, 100 = free second item
      */
     discountValue: integer('discount_value').notNull(),
+
     /* What the offer applies to (product/category/order) */
     scope: offerScopeEnum('scope').notNull(),
 
@@ -221,8 +208,8 @@ export const offerRelations = relations(offer, ({ one, many }) => ({
     fields: [offer.organizationId],
     references: [organization.id],
   }),
-  categories: many(offerCategory), // Categories this offer targets
-  products: many(offerProduct), // Products this offer targets
+  categories: many(offerCategory),
+  products: many(offerProduct),
 }));
 
 export const offerCategoryRelations = relations(offerCategory, ({ one }) => ({
@@ -252,6 +239,7 @@ export const offerProductRelations = relations(offerProduct, ({ one }) => ({
 // ==========================================================================
 
 export const SelectOfferSchema = createSelectSchema(offer);
+
 export const InsertOfferSchema = createInsertSchema(offer, {
   name: field => field.min(1).max(255),
   description: field => field.max(1000).optional(),
@@ -270,6 +258,7 @@ export const InsertOfferSchema = createInsertSchema(offer, {
     validFrom: z.coerce.date(),
     validUntil: z.coerce.date().optional().nullable(),
   });
+
 export const PatchOfferSchema = InsertOfferSchema.partial();
 
 export const SelectOfferCategorySchema = createSelectSchema(offerCategory);
@@ -293,13 +282,12 @@ export const PatchOfferProductSchema = InsertOfferProductSchema.partial();
 // ============================================================================
 // TYPES
 // ============================================================================
-
 // Offer
 export type SelectOfferType = typeof offer.$inferSelect;
 export type InsertOfferInputType = z.infer<typeof InsertOfferSchema>;
 export type PatchOfferInputType = z.infer<typeof PatchOfferSchema>;
 
-// OfferCategory
+// Offer Category
 export type SelectOfferCategoryType = typeof offerCategory.$inferSelect;
 export type InsertOfferCategoryInputType = z.infer<typeof InsertOfferCategorySchema>;
 export type PatchOfferCategoryInputType = z.infer<typeof PatchOfferCategorySchema>;

@@ -40,9 +40,24 @@ const offerContract = oc
         path: '/active',
         summary: 'List currently active offers',
         description:
-          'Retrieve offers that are currently active based on dates, time, and day-of-week rules.',
+          'Retrieve offers that are currently active based on dates, time, and day-of-week rules. Includes linked categories and products.',
       })
-      .output(z.array(SelectOfferSchema)),
+      .output(
+        z.array(
+          SelectOfferSchema.extend({
+            categories: z.array(
+              SelectOfferCategorySchema.extend({
+                category: z.any(), // Category schema
+              })
+            ),
+            products: z.array(
+              SelectOfferProductSchema.extend({
+                product: z.any(), // Product schema
+              })
+            ),
+          })
+        )
+      ),
 
     one: oc
       .route({
@@ -54,6 +69,34 @@ const offerContract = oc
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }))
       .output(SelectOfferSchema),
+
+    oneDetailed: oc
+      .route({
+        method: 'GET',
+        path: '/{id}',
+        summary: 'Retrieve an offer',
+        description: 'Returns a single offer with linked categories and products.',
+      })
+      .errors(missingIdError)
+      .input(z.object({ id: z.uuid() }))
+      .output(
+        SelectOfferSchema.extend({
+          categories: z
+            .array(
+              SelectOfferCategorySchema.extend({
+                category: z.any(),
+              })
+            )
+            .optional(),
+          products: z
+            .array(
+              SelectOfferProductSchema.extend({
+                product: z.any(),
+              })
+            )
+            .optional(),
+        })
+      ),
 
     create: oc
       .route({
@@ -83,7 +126,7 @@ const offerContract = oc
         method: 'DELETE',
         path: '/{id}',
         summary: 'Delete an offer',
-        description: 'Permanently removes an offer and its category/product assignments.',
+        description: 'Soft deletes an offer (marks as deleted but keeps in database).',
       })
       .errors(missingIdError)
       .input(z.object({ id: z.uuid() }))
