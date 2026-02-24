@@ -26,7 +26,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { organization } from './auth-schema';
 import { product } from './product';
@@ -258,13 +258,18 @@ export const InsertOfferSchema = createInsertSchema(offer, {
   discountValue: field => field.int().min(0),
   priority: field => field.int().optional(),
   maxRedemptions: field => field.int().min(1).optional().nullable(),
-}).omit({
-  organizationId: true,
-  currentRedemptions: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-});
+})
+  .omit({
+    organizationId: true,
+    currentRedemptions: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+  })
+  .extend({
+    validFrom: z.coerce.date(),
+    validUntil: z.coerce.date().optional().nullable(),
+  });
 export const PatchOfferSchema = InsertOfferSchema.partial();
 
 export const SelectOfferCategorySchema = createSelectSchema(offerCategory);
