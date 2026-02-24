@@ -28,10 +28,6 @@
 @workstationId = 822a1d97-d515-4de6-8271-1c33ba8842f0
 
 
-# ========================================
-# WORKSTATIONS
-# ========================================
-
 ### List all workstations - ok
 GET {{baseUrl}}{{apiPrefix}}/workstations
 Origin: {{origin}}
@@ -52,11 +48,6 @@ GET {{baseUrl}}{{apiPrefix}}/workstations/{{workstationId}}/detailed
 Origin: {{origin}}
 Referer: {{origin}}/
 
-###
-# ========================================
-# MUTATIONS
-# ========================================
-# Body shapes must match InsertWorkStationSchema / PatchWorkStationSchema.
 
 ### Create a workstation - ok
 POST {{baseUrl}}{{apiPrefix}}/workstations
@@ -65,8 +56,8 @@ Origin: {{origin}}
 Referer: {{origin}}/
 
 {
-  "name": "Bar",
-  "description": "Bar workstation"
+  "name": "Main",
+  "description": "Main workstation"
 }
 
 ### Patch/update a workstation (only include fields you want to change) - ok

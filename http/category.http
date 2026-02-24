@@ -1,0 +1,143 @@
+# Categories API – REST Client
+#
+# Endpoints: /categories
+# Purpose:
+# - Menu categories that organize products into logical groups.
+# - Each category is assigned to a workstation for kitchen routing
+#   and can belong to one or more catalogs.
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{categoryId}}, {{catalogId}}, {{productId}} with UUIDs from responses.
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs for the URLs (paste values from responses)
+@catalogId = 9bd6fa53-8293-4891-8271-f3cef3030199
+@categoryId = cc7b8f3e-43a7-4579-a7ff-02fc7edb9aad
+@productId = 7b21552b-19c2-4e7f-b6db-d00846621219
+
+
+### List all categories - OK
+GET {{baseUrl}}{{apiPrefix}}/categories
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a category by id - OK
+GET {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### List categories for a catalog - OK
+GET {{baseUrl}}{{apiPrefix}}/categories/by-catalog/{{catalogId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a category with its products - ok
+GET {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}/products
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### ???? Retrieve a category with full product and modifier tree (detailed)
+# Returns category with products, modifier groups, modifiers, and dependencies
+# Designed for POS checkout rendering
+GET {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}/full
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Create a category - OK
+POST {{baseUrl}}{{apiPrefix}}/categories
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "catalogId": "9bd6fa53-8293-4891-8271-f3cef3030199",
+  "workstationId": "a4c5237b-5c15-4df6-bfcb-a05ba87cecfa",
+
+  "name": "Appetizers",
+  "description": "Starter dishes and small plates",
+  "isActive": true,
+  "servingOrder": 1,
+  "activeFrom": "2024-01-01T00:00:00Z"
+}
+
+# {
+#   "catalogId": "9bd6fa53-8293-4891-8271-f3cef3030199",
+#   "workstationId": "a4c5237b-5c15-4df6-bfcb-a05ba87cecfa",
+  
+#   "name": "Beverages",
+#   "description": "Drinks and refreshments",
+#   "isActive": true,
+#   "servingOrder": 5,
+#   "activeFrom": "2024-01-01T00:00:00Z"
+# }
+
+# {
+#   "catalogId": "9bd6fa53-8293-4891-8271-f3cef3030199",
+#   "workstationId": "a4c5237b-5c15-4df6-bfcb-a05ba87cecfa",
+  
+#   "name": "Main Course",
+#   "description": "Main course dishes",
+#   "isActive": true,
+#   "servingOrder": 3,
+#   "activeFrom": "2024-01-01T00:00:00Z"
+# }
+
+### Patch/update a category (only include fields you want to change) - OK
+PATCH {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Appetizers & Starters",
+  "servingOrder": 2
+}
+
+### Delete a category - OK
+DELETE {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+# ── Product junction operations ──────────────────────────────────────
+
+### Link a product to a category - ok
+POST {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}/products
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "productId": "7b21552b-19c2-4e7f-b6db-d00846621219",
+  "displayOrder": 0
+}
+
+### Unlink a product from a category - ok
+DELETE {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}/products/{{productId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Update product display order within a category - ok
+PATCH {{baseUrl}}{{apiPrefix}}/categories/{{categoryId}}/products/{{productId}}/order
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "displayOrder": 3
+}

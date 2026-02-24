@@ -1,0 +1,136 @@
+# Products API – REST Client
+#
+# Endpoints: /products
+# Purpose:
+# - Menu items that can be sold. Products belong to categories
+#   and can have modifier groups for customization options.
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{productId}}, {{workstationId}} with UUIDs from responses.
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@productId = d34ee699-bd21-44d9-9d55-cd6f43bf0f10
+@workstationId = 
+
+
+### List all products - ok
+GET {{baseUrl}}{{apiPrefix}}/products
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a product by id - ok
+GET {{baseUrl}}{{apiPrefix}}/products/{{productId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Search products by name - ok
+GET {{baseUrl}}{{apiPrefix}}/products/search?query=burger
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO: Flatten the response - missing dependencies | Not sure if we need this endpoint
+###  Retrieve a product with its modifier groups and modifiers - ok
+GET {{baseUrl}}{{apiPrefix}}/products/{{productId}}/modifiers
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO: Flatten the response
+###  Retrieve a product with full details (detailed)- ok
+# Returns product with workstation, categories, modifier groups, modifiers, dependencies, and offers
+# Designed for POS and admin detail views
+GET {{baseUrl}}{{apiPrefix}}/products/{{productId}}/detailed
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+### Create a basic product - ok
+POST {{baseUrl}}{{apiPrefix}}/products
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Capucino",
+  "description": "Capucino",
+  "basePrice": 450,
+  "isActive": true
+}
+
+# {
+#   "name": "Noodle Soup",
+#   "description": "Noodle soup with vegetables and meat",
+#   "basePrice": 1050,
+#   "isActive": true
+# }
+
+# {
+#   "workstationId": "692f0222-e730-49d1-9b94-ce5e2e19aacc",
+#   "name": "Fish",
+#   "barcode": "1231241",
+#   "description": "askdmasda",
+#   "image": "https://example.com/fish.jpg",
+#   "preparationTime": 4500,
+#   "basePrice": 2350,
+#   "isActive": true
+# }
+
+# {
+#   "workstationId": "692f0222-e730-49d1-9b94-ce5e2e19aacc",
+
+#   "name": "Sparkling Water",
+#   "description": "Refreshing carbonated water",
+#   "basePrice": 150,
+#   "isActive": true,
+#   "preparationTime": 100
+# }
+
+# {
+#   "name": "French Fries",
+#   "description": "Crispy golden fries",
+#   "basePrice": 4990,
+#   "isActive": true,
+#   "preparationTime": 4500
+# }
+
+
+### Patch/update a product (only include fields you want to change) - ok
+PATCH {{baseUrl}}{{apiPrefix}}/products/{{productId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "basePrice": 1399,
+  "description": "Premium beef patty with lettuce, tomato, and house special sauce"
+}
+
+### Update product availability - ok
+PATCH {{baseUrl}}{{apiPrefix}}/products/{{productId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "isActive": false
+}
+
+### Delete a product - ok
+DELETE {{baseUrl}}{{apiPrefix}}/products/{{productId}}
+Origin: {{origin}}
+Referer: {{origin}}/

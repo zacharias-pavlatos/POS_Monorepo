@@ -4,27 +4,29 @@
     "description": "50% off all drinks",
     "discountType": "percentage",
     "discountValue": 50,
-    "scope": "category",
-    "targetCategoryNames": ["Drinks", "Coffee"],
     "validFrom": "2024-01-01T17:00:00Z",
     "validUntil": null,
     "startTime": "17:00:00",
     "endTime": "19:00:00",
     "activeDaysOfWeek": [0, 1, 2, 3, 4],
-    "isActive": true
+    "isActive": true,
+
+    "scope": "category",
+    "targetCategoryNames": ["Drinks"]
   },
   {
     "name": "Lunch Special",
     "description": "Pizza for €10",
     "discountType": "fixed_price",
     "discountValue": 1000,
-    "scope": "category",
-    "targetCategoryNames": ["Pizza"],
     "validFrom": "2024-01-01T12:00:00Z",
     "validUntil": null,
     "startTime": "12:00:00",
     "endTime": "15:00:00",
     "activeDaysOfWeek": [0, 1, 2, 3, 4],
-    "isActive": true
+    "isActive": true,
+
+    "scope": "category",
+    "targetCategoryNames": ["Pizza"]
   }
 ]

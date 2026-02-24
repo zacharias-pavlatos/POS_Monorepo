@@ -1,0 +1,107 @@
+# Catalogs API – REST Client
+#
+# Endpoints: /catalogs
+# Purpose:
+# - Menu collections that group categories with time-based availability.
+# - A restaurant might have separate breakfast, lunch, and dinner catalogs,
+#   each containing different category sets and active during different hours.
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{catalogId}} with a UUID from list/create responses.
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@catalogId = 9bd6fa53-8293-4891-8271-f3cef3030199
+
+
+### List all catalogs - OK
+GET {{baseUrl}}{{apiPrefix}}/catalogs
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a catalog by id - OK
+GET {{baseUrl}}{{apiPrefix}}/catalogs/{{catalogId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO: flaten the response
+### Retrieve a catalog with its categories - OK
+GET {{baseUrl}}{{apiPrefix}}/catalogs/{{catalogId}}/categories
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO: flaten the response
+### ??? Retrieve a catalog with full menu tree (detailed)
+# Returns catalog with categories, products, modifier groups, modifiers, and dependencies
+# Designed for POS menu rendering
+GET {{baseUrl}}{{apiPrefix}}/catalogs/{{catalogId}}/detailed
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+### Create a catalog - OK
+POST {{baseUrl}}{{apiPrefix}}/catalogs
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{  
+  "name": "Second Menu",
+  "description": "Second menu",
+  "internalNotes": "Oti nanai",
+  "displayOrder": 2,
+  "availableFrom": null,
+  "availableUntil": null,
+  "activeDaysOfWeek": [0,2,4],
+  "color": "#ff0000",
+  "image": null,
+  "isActive": true
+}
+
+# {
+#   "name": "Main Menu",
+#   "description": "Main menu",
+#   "isActive": true,
+#   "startTime": null,
+#   "endTime": null
+# }
+
+# {
+#   "name": "Lunch Menu2",
+#   "description": "Lunch menu available 11am-4pm",
+#   "isActive": true,
+#   "startTime": "11:00:00",
+#   "endTime": "16:00:00"
+# }
+
+
+### Patch/update a catalog (only include fields you want to change) - OK
+PATCH {{baseUrl}}{{apiPrefix}}/catalogs/{{catalogId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Breakfast Menu - Updated",
+  "isActive": false
+}
+
+### Delete a catalog - OK
+DELETE {{baseUrl}}{{apiPrefix}}/catalogs/{{catalogId}}
+Origin: {{origin}}
+Referer: {{origin}}/

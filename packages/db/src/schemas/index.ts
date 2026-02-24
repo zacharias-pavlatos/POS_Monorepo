@@ -10,12 +10,12 @@
 export * from './auth-schema';
 
 export * from './restaurant';
+export * from './workstation';
 export * from './catalog';
 export * from './category';
 export * from './product';
 export * from './modifier';
 export * from './offer';
-export * from './workstation';
 
 export * from './zone';
 export * from './table';

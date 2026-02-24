@@ -64,6 +64,24 @@ export default async function seedModifiers() {
 
     if (groupId && modGroupData.modifiers) {
       for (const modOption of modGroupData.modifiers) {
+        let referencedProductId = null;
+        if ((modOption as any).referencedProductName) {
+          const refProduct = await db.query.product.findFirst({
+            where: and(
+              eq(product.organizationId, org.id),
+              eq(product.name, (modOption as any).referencedProductName)
+            ),
+          });
+
+          if (refProduct) {
+            referencedProductId = refProduct.id;
+          } else {
+            console.warn(
+              `⚠ Referenced product "${(modOption as any).referencedProductName}" not found for modifier "${modOption.name}". Skipping reference.`
+            );
+          }
+        }
+
         await db
           .insert(modifier)
           .values({
@@ -72,8 +90,9 @@ export default async function seedModifiers() {
             name: modOption.name,
             basePrice: modOption.basePrice,
             isDefault: (modOption as any).isDefault || false,
+            referencedProductId,
           })
-          .onConflictDoNothing(); // Assuming no unique constraint on (groupId, name), might duplicate if run again. Ideally add constraint to schema.
+          .onConflictDoNothing();
       }
     }
   }

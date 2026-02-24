@@ -151,6 +151,21 @@ export const modifierRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
+  // Fetch modifiers with referenced product data
+  findByGroupWithProducts: (modifierGroupId: string) => {
+    return db.query.modifier.findMany({
+      where: and(
+        eq(modifier.organizationId, organizationId),
+        eq(modifier.modifierGroupId, modifierGroupId),
+        isNull(modifier.deletedAt)
+      ),
+      with: {
+        referencedProduct: true, // ← Include referenced product
+      },
+      orderBy: modifier.displayOrder,
+    });
+  },
+
   findByIdWithDependencies: (id: string) => {
     return db.query.modifier.findFirst({
       where: and(
@@ -159,6 +174,7 @@ export const modifierRepository = ({ db, organizationId }: TenantContext) => ({
         isNull(modifier.deletedAt)
       ),
       with: {
+        referencedProduct: true,
         dependencies: true,
         dependents: true,
       },

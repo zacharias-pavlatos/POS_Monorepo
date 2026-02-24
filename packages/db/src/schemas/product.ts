@@ -56,7 +56,7 @@ export const product = pgTable(
     image: text('image'),
     preparationTime: integer('preparation_time'), // seconds
     /* Price is in cents to avoid floating point issues */
-    basePrice: integer('base_price').notNull().default(0),
+    basePrice: integer('base_price').notNull(),
 
     // allergens: text('allergens').array(), // ['gluten', 'dairy', 'nuts']
     // nutritionalInfo: text('nutritional_info'), // JSON string
@@ -106,6 +106,7 @@ export const productRelations = relations(product, ({ one, many }) => ({
 
 export const SelectProductSchema = createSelectSchema(product);
 export const InsertProductSchema = createInsertSchema(product, {
+  workstationId: field => field.optional().nullable(),
   name: field => field.min(1).max(255),
   description: field => field.max(1000).optional(),
   basePrice: field => field.int().min(0),

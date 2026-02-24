@@ -20,7 +20,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { organization } from './auth-schema';
 import { product } from './product';
@@ -71,7 +71,7 @@ export const category = pgTable(
     servingOrder: integer('serving_order').notNull().default(0),
 
     /* Category becomes active from this date */
-    activeFrom: timestamp('active_from', { withTimezone: true }).notNull(),
+    activeFrom: timestamp('active_from', { withTimezone: true }),
     /* Category expires on this date (null = no expiration) */
     activeUntil: timestamp('active_until', { withTimezone: true }),
     /* Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday) */
@@ -197,12 +197,30 @@ export const InsertCategorySchema = createInsertSchema(category, {
       .optional()
       .nullable(),
   image: field => field.optional().nullable(),
-}).omit({
-  organizationId: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-});
+})
+  .omit({
+    organizationId: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+  })
+  .extend({
+    // Date fields - accept ISO strings from HTTP
+    activeFrom: z.coerce.date().optional().nullable(),
+    activeUntil: z.coerce.date().optional().nullable(),
+
+    // Time fields - accept HH:MM or HH:MM:SS
+    startTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .optional()
+      .nullable(),
+    endTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .optional()
+      .nullable(),
+  });
 export const PatchCategorySchema = InsertCategorySchema.partial();
 
 export const SelectCategoryProductSchema = createSelectSchema(categoryProduct);

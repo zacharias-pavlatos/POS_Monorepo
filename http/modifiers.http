@@ -1,0 +1,242 @@
+# Modifiers API – REST Client
+#
+# Endpoints: /modifiers
+# Purpose:
+# - Individual modifier options within a modifier group.
+# - Each modifier has a base price and can have dependencies that override
+#   its price or availability based on other modifier selections.
+# - Example: "Large" modifier in a "Size" group with basePrice 350 (€3.50).
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Create a product (products.http)
+# 3) Create a modifier group (modifier-groups.http)
+# 4) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{modifierId}}, {{modifierGroupId}} with UUIDs from responses.
+# - Prices are in cents (e.g., 350 = €3.50 or $3.50)
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@modifierGroupId = 2d89b9a9-7b56-4b0a-a0f9-08a842cd0146
+@modifierId = e19e06d3-3492-4e91-8d2b-73efa0b9d2ec
+
+
+### List modifiers for a group - ok
+GET {{baseUrl}}{{apiPrefix}}/modifiers/by-group/{{modifierGroupId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a modifier by id - ok
+GET {{baseUrl}}{{apiPrefix}}/modifiers/{{modifierId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO:
+### ??? Retrieve a modifier with its dependencies
+GET {{baseUrl}}{{apiPrefix}}/modifiers/{{modifierId}}/dependencies
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Create Size modifiers - ok
+POST {{baseUrl}}{{apiPrefix}}/modifiers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "modifierGroupId": "bcf255e9-f617-4d74-b1e3-7e33e15e1336",
+  "name": "Small",
+  "description": "12 oz",
+  "basePrice": 0,
+  "isDefault": true,
+  "isActive": true,
+  "displayOrder": 0
+}
+
+# {
+#   "modifierGroupId": "bcf255e9-f617-4d74-b1e3-7e33e15e1336",
+#   "name": "Medium",
+#   "description": "16 oz",
+#   "basePrice": 50,
+#   "isDefault": false,
+#   "isActive": true,
+#   "displayOrder": 1
+# }
+
+# {
+#   "modifierGroupId": "bcf255e9-f617-4d74-b1e3-7e33e15e1336",
+#   "name": "Large",
+#   "description": "20 oz",
+#   "basePrice": 100,
+#   "isActive": true,
+#   "displayOrder": 2
+# }
+
+
+### Create topping modifiers - ok
+POST {{baseUrl}}{{apiPrefix}}/modifiers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "modifierGroupId": "41ef3559-f5cf-43a6-9c33-347b6c828da6",
+  "name": "Extra Cheese",
+  "basePrice": 150,
+  "isActive": true,
+  "displayOrder": 0
+}
+
+# {
+#   "modifierGroupId": "41ef3559-f5cf-43a6-9c33-347b6c828da6",
+#   "name": "Pepperoni",
+#   "basePrice": 200,
+#   "isActive": true,
+#   "displayOrder": 1
+# }
+
+# {
+#   "modifierGroupId": "41ef3559-f5cf-43a6-9c33-347b6c828da6",
+#   "name": "Mushrooms",
+#   "basePrice": 100,
+#   "isDefault": true,
+#   "isActive": true,
+#   "displayOrder": 2
+# }
+
+
+
+### Create Sugar modifiers - ok
+POST {{baseUrl}}{{apiPrefix}}/modifiers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+# {
+#     "modifierGroupId": "2d89b9a9-7b56-4b0a-a0f9-08a842cd0146",
+#     "name": "No Sugar",
+#     "description": "Unsweetened",
+#     "basePrice": 0,
+#     "isDefault": false,
+#     "isActive": true,
+#     "displayOrder": 0
+# }
+
+# {
+#     "modifierGroupId": "2d89b9a9-7b56-4b0a-a0f9-08a842cd0146",
+#     "name": "Light Sugar",
+#     "description": "25% sweetness",
+#     "basePrice": 0,
+#     "isDefault": false,
+#     "isActive": true,
+#     "displayOrder": 1
+# }
+
+# {
+#     "modifierGroupId": "2d89b9a9-7b56-4b0a-a0f9-08a842cd0146",
+#     "name": "Regular Sugar",
+#     "description": "Standard sweetness",
+#     "basePrice": 0,
+#     "isDefault": true,
+#     "isActive": true,
+#     "displayOrder": 2
+# }
+
+# {
+#     "modifierGroupId": "2d89b9a9-7b56-4b0a-a0f9-08a842cd0146",
+#     "name": "Extra Sugar",
+#     "description": "150% sweetness",
+#     "basePrice": 0,
+#     "isDefault": false,
+#     "displayOrder": 3
+# }
+
+
+# {
+#     "modifierGroupId": "b93662ae-46d9-44b9-8cf6-049a5a51fa4e",
+#     "name": "White Sugar",
+#     "description": "Classic refined sugar",
+#     "basePrice": 0,
+#     "isDefault": false,
+#     "displayOrder": 0
+# }
+
+# {
+#     "modifierGroupId": "b93662ae-46d9-44b9-8cf6-049a5a51fa4e",
+#     "name": "Brown Sugar",
+#     "description": "Rich molasses flavor",
+#     "basePrice": 0,
+#     "isDefault": false,
+#     "displayOrder": 1
+# }
+
+# {
+#     "modifierGroupId": "b93662ae-46d9-44b9-8cf6-049a5a51fa4e",
+#     "name": "Stevia",
+#     "description": "Natural sweetener",
+#     "basePrice": 0,
+#     "isDefault": false,
+#     "displayOrder": 2
+# }
+
+# {
+#     "modifierGroupId": "56cb24a8-bc6a-4f8f-8e71-b2cfb59273fe",
+#     "name": "Ethiopian",
+#     "description": "Ethiopian coffee blend",
+#     "basePrice": 50,
+#     "isDefault": false,
+#     "displayOrder": 0
+# }
+
+{
+    "modifierGroupId": "56cb24a8-bc6a-4f8f-8e71-b2cfb59273fe",
+    "name": "Arabica",
+    "description": "Arabica coffee blend",
+    "basePrice": 0,
+    "isDefault": false,
+    "displayOrder": 0
+}
+
+
+
+
+
+
+### Update a modifier (only include fields you want to change) - ok
+PATCH {{baseUrl}}{{apiPrefix}}/modifiers/{{modifierId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "basePrice": 120,
+  "description": "Extra large"
+}
+
+### Mark modifier as out of stock - ok
+PATCH {{baseUrl}}{{apiPrefix}}/modifiers/{{modifierId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "isActive": false
+}
+
+### Delete a modifier - ok
+DELETE {{baseUrl}}{{apiPrefix}}/modifiers/{{modifierId}}
+Origin: {{origin}}
+Referer: {{origin}}/

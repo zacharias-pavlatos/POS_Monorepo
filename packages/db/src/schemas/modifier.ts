@@ -3,6 +3,11 @@
  *
  * Modifiers allow products to have customizable options (sizes, toppings, extras).
  * Supports dynamic pricing and conditional visibility based on selections.
+ *
+ * COMBO SUPPORT:
+ * Modifiers can optionally reference actual products via referencedProductId.
+ * This enables combos/bundles where customers choose from real menu items.
+ * Benefits: inventory tracking, price sync, kitchen display accuracy.
  */
 
 import {
@@ -51,9 +56,9 @@ export const modifierGroup = pgTable(
 
     /** If true, customer must make a selection before adding to cart */
     isRequired: boolean('is_required').notNull().default(false),
-    /** Minimum selections required (0 = optional, 1+ = required) */
+    /** Minimum selections required (0 = optional, 1+ = required) | (for combos: min=2 means "pick 2")*/
     minSelections: integer('min_selections').notNull().default(0),
-    /** Maximum selections allowed (null = unlimited for multi-select) */
+    /** Maximum selections allowed (null = unlimited for multi-select) | (for combos: max=2 enforces "pick exactly 2") */
     maxSelections: integer('max_selections'),
     /** UI display order (lower = first) */
     displayOrder: integer('display_order').notNull().default(0),
@@ -71,10 +76,12 @@ export const modifierGroup = pgTable(
 /**
  * Individual modifier options within a group.
  *
- * Examples within "Toppings" group:
- * - "Cheese" (+$1.50)
- * - "Pepperoni" (+$2.00)
- * - "Mushrooms" (+$1.00, is_default=true)
+ * TRADITIONAL: Size/add-ons (referencedProductId = null)
+ * COMBOS: References actual products for inventory tracking (referencedProductId = set)
+ *
+ * Example combo:
+ *   "Pizza + Drink Deal" → Choose Pizza → "Margherita" (referencedProductId: margherita-product-id)
+ *   Benefits: inventory deduction, kitchen accuracy, price sync
  */
 export const modifier = pgTable(
   'modifier',
@@ -86,11 +93,19 @@ export const modifier = pgTable(
     modifierGroupId: uuid('modifier_group_id')
       .notNull()
       .references(() => modifierGroup.id, { onDelete: 'cascade' }),
+    /**
+     * Links to actual product (for combos).
+     * Enables: inventory tracking, kitchen display, analytics.
+     * Leave null for traditional modifiers (sizes, add-ons).
+     */
+    referencedProductId: uuid('referenced_product_id').references(() => product.id, {
+      onDelete: 'set null',
+    }),
 
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
 
-    /* Price adjustment when selected - stored in cents to avoid floating point issues */
+    /* Price adjustment in cents. For combos: 0 = included, 100 = +€1 upgrade */
     basePrice: integer('base_price').notNull().default(0),
     /** If true, pre-select this option in the UI */
     isDefault: boolean('is_default').notNull().default(false),
@@ -102,6 +117,8 @@ export const modifier = pgTable(
     ...timestamps,
   },
   table => [
+    /* Optimizes: Get all modifiers for a product */
+    index('idx_modifier_product_ref').on(table.referencedProductId),
     /* Optimizes: Get all modifiers in a group */
     index('idx_modifier_group').on(table.modifierGroupId),
     /* Optimizes: Get modifiers ordered by display order */
@@ -245,6 +262,15 @@ export const modifierRelations = relations(modifier, ({ one, many }) => ({
   modifierGroup: one(modifierGroup, {
     fields: [modifier.modifierGroupId],
     references: [modifierGroup.id],
+  }),
+  /**
+   * Referenced product (for combo modifiers).
+   * Null for traditional modifiers (sizes, add-ons, etc.).
+   * Set for combo options that represent choosing an actual menu item.
+   */
+  referencedProduct: one(product, {
+    fields: [modifier.referencedProductId],
+    references: [product.id],
   }),
   /** Dependencies where THIS modifier's price/visibility is affected */
   dependencies: many(modifierOptionDependency, { relationName: 'modifier' }),

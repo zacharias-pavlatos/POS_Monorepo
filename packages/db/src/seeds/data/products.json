@@ -54,5 +54,12 @@
     "basePrice": 200,
     "categoryNames": ["Drinks"],
     "isActive": true
+  },
+  {
+    "name": "Pizza + Drink Combo",
+    "description": "Any pizza and drink for €12",
+    "basePrice": 1200,
+    "categoryNames": ["Combos"],
+    "isActive": true
   }
 ]

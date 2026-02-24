@@ -1,90 +1,86 @@
-import { modifierRepository } from '@repo/db/repositories';
+import { modifierOptionDependencyRepository } from '@repo/db/repositories';
 
 import { organizationProcedure } from '../procedures';
 
-const modifierRouter = {
-  /** GET /modifiers/by-group/{modifierGroupId} — list modifiers in a group */
-  byGroup: organizationProcedure.modifiers.byGroup.handler(({ context, input }) => {
-    return modifierRepository({
-      db: context.db,
-      organizationId: context.activeOrganizationId,
-    }).findByGroup(input.modifierGroupId);
-  }),
-
-  one: organizationProcedure.modifiers.one.handler(async ({ context, input, errors }) => {
-    const mod = await modifierRepository({
-      db: context.db,
-      organizationId: context.activeOrganizationId,
-    }).findById(input.id);
-
-    if (!mod) {
-      throw errors.NOT_FOUND({
-        data: { modifierId: input.id },
-      });
-    }
-    return mod;
-  }),
-
-  /** GET /modifiers/{id}/dependencies — modifier with dependencies + dependents */
-  oneWithDependencies: organizationProcedure.modifiers.oneWithDependencies.handler(
-    async ({ context, input, errors }) => {
-      const mod = await modifierRepository({
+const modifierDependencyRouter = {
+  byModifier: organizationProcedure.modifierDependencies.byModifier.handler(
+    ({ context, input }) => {
+      return modifierOptionDependencyRepository({
+        // ← Use the correct name
         db: context.db,
         organizationId: context.activeOrganizationId,
-      }).findByIdWithDependencies(input.id);
-
-      if (!mod) {
-        throw errors.NOT_FOUND({
-          data: { modifierId: input.id },
-        });
-      }
-      return mod;
+      }).findByModifier(input.modifierId);
     }
   ),
 
-  create: organizationProcedure.modifiers.create.handler(
+  byTrigger: organizationProcedure.modifierDependencies.byTrigger.handler(
+    ({ context, input }) => {
+      return modifierOptionDependencyRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findByTrigger(input.modifierId);
+    }
+  ),
+
+  one: organizationProcedure.modifierDependencies.one.handler(
     async ({ context, input, errors }) => {
-      const res = await modifierRepository({
+      const dep = await modifierOptionDependencyRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findById(input.id);
+
+      if (!dep) {
+        throw errors.NOT_FOUND({
+          data: { dependencyId: input.id },
+        });
+      }
+      return dep;
+    }
+  ),
+
+  create: organizationProcedure.modifierDependencies.create.handler(
+    async ({ context, input, errors }) => {
+      const res = await modifierOptionDependencyRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
       }).create(input);
 
       if (!res) {
         throw errors.BAD_REQUEST({
-          message: 'Failed to create modifier',
+          message: 'Failed to create dependency',
         });
       }
       return res;
     }
   ),
 
-  update: organizationProcedure.modifiers.update.handler(
+  update: organizationProcedure.modifierDependencies.update.handler(
     async ({ context, input, errors }) => {
       const { id, ...data } = input;
-      const updated = await modifierRepository({
+      const updated = await modifierOptionDependencyRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
       }).update(id, data);
 
       if (!updated) {
         throw errors.NOT_FOUND({
-          data: { modifierId: input.id },
+          data: { dependencyId: input.id },
         });
       }
       return updated;
     }
   ),
 
-  delete: organizationProcedure.modifiers.delete.handler(
+  delete: organizationProcedure.modifierDependencies.delete.handler(
     async ({ context, input, errors }) => {
-      const res = await modifierRepository({
+      const res = await modifierOptionDependencyRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
       }).hardDelete(input.id);
 
       if (!res) {
         throw errors.NOT_FOUND({
-          data: { modifierId: input.id },
+          data: { dependencyId: input.id },
         });
       }
       return res;
@@ -92,4 +88,4 @@ const modifierRouter = {
   ),
 };
 
-export default modifierRouter;
+export default modifierDependencyRouter;

@@ -47,8 +47,8 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
     });
   },
 
-  findByIdWithProducts: (id: string) => {
-    return db.query.category.findFirst({
+  findByIdWithProducts: async (id: string) => {
+    const result = await db.query.category.findFirst({
       where: and(
         eq(category.id, id),
         eq(category.organizationId, organizationId),
@@ -61,11 +61,24 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
         },
       },
     });
+
+    if (!result) {
+      return null;
+    }
+
+    // ✅ Transform: flatten the junction table
+    return {
+      ...result,
+      products: result.products.map(cp => ({
+        ...cp.product,
+        displayOrder: cp.displayOrder,
+      })),
+    };
   },
 
   /** Full POS expansion: category → products → modifierGroups → modifiers → dependencies */
-  findByIdDetailed: (id: string) => {
-    return db.query.category.findFirst({
+  findByIdDetailed: async (id: string) => {
+    const result = await db.query.category.findFirst({
       where: and(
         eq(category.id, id),
         eq(category.organizationId, organizationId),
@@ -92,6 +105,19 @@ export const categoryRepository = ({ db, organizationId }: TenantContext) => ({
         },
       },
     });
+
+    if (!result) {
+      return null;
+    }
+
+    // ✅ Transform: flatten the junction table
+    return {
+      ...result,
+      products: result.products.map(cp => ({
+        ...cp.product,
+        displayOrder: cp.displayOrder,
+      })),
+    };
   },
 
   create: async (payload: InsertCategoryInputType) => {

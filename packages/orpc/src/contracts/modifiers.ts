@@ -16,6 +16,7 @@ import {
   PatchModifierSchema,
   SelectModifierSchema,
   SelectModifierOptionDependencySchema,
+  SelectProductSchema,
 } from '@repo/db/schema';
 
 import { missingIdError } from '../utils/commonErrors';
@@ -58,6 +59,7 @@ const modifierContract = oc
       .input(z.object({ id: z.uuid() }))
       .output(
         SelectModifierSchema.extend({
+          referencedProduct: SelectProductSchema.optional().nullable(),
           dependencies: z.array(SelectModifierOptionDependencySchema),
           dependents: z.array(SelectModifierOptionDependencySchema),
         })

@@ -1,0 +1,139 @@
+# Modifier Groups API – REST Client
+#
+# Endpoints: /modifier-groups
+# Purpose:
+# - Groups of related modifier options attached to a product.
+# - Each group has selection rules (min/max) and contains modifiers.
+# - Example: A "Size" group (min=1, max=1, required) with Small/Medium/Large options.
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Create a product first (products.http)
+# 3) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{modifierGroupId}}, {{productId}} with UUIDs from responses.
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@productId = d34ee699-bd21-44d9-9d55-cd6f43bf0f10
+@modifierGroupId = bcf255e9-f617-4d74-b1e3-7e33e15e1336
+
+
+### List all modifier groups - ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-groups
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a modifier group by id - ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-groups/{{modifierGroupId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO: Add also the modifiers and dependencies
+### List modifier groups for a product - ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-groups/by-product/{{productId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+//TODO: Flaten
+### Retrieve a modifier group with its modifiers and dependencies - ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-groups/{{modifierGroupId}}/modifiers
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+### Create  modifier groups  - ok
+POST {{baseUrl}}{{apiPrefix}}/modifier-groups
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+# {
+#   "productId": "{{productId}}",
+#   "name": "Size",
+#   "description": "Choose your size",
+#   "isRequired": true,
+#   "minSelections": 1,
+#   "maxSelections": 1,
+#   "displayOrder": 0
+# }
+
+# {
+#   "productId": "{{productId}}",
+#   "name": "Toppings",
+#   "description": "Add your favorite toppings",
+#   "isRequired": false,
+#   "minSelections": 0,
+#   "maxSelections": 5,
+#   "displayOrder": 1
+# }
+
+# {
+#   "productId": "{{productId}}",
+#   "name": "Coffee Blend",
+#   "description": "Select your coffee blend",
+#   "isRequired": true,
+#   "minSelections": 1,
+#   "maxSelections": 1,
+#   "displayOrder": 2
+# }
+
+
+# {
+#   "productId": "d34ee699-bd21-44d9-9d55-cd6f43bf0f10",
+#   "name": "Sugar Level",
+#   "description": "How sweet do you want it?",
+#   "isRequired": true,
+#   "minSelections": 1,
+#   "maxSelections": 1,
+#   "displayOrder": 3
+# }
+
+{
+  "productId": "d34ee699-bd21-44d9-9d55-cd6f43bf0f10",
+  "name": "Sugar Type",
+  "description": "Choose your sugar type",
+  "isRequired": true,
+  "minSelections": 1,
+  "maxSelections": 1,
+  "displayOrder": 4
+}
+
+### Update a modifier group (only include fields you want to change) - ok
+PATCH {{baseUrl}}{{apiPrefix}}/modifier-groups/{{modifierGroupId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Size Options Updated",
+  "maxSelections": 1
+}
+
+### Make a group optional - ok
+PATCH {{baseUrl}}{{apiPrefix}}/modifier-groups/{{modifierGroupId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "isRequired": false,
+  "minSelections": 0
+}
+
+### Delete a modifier group - ok
+DELETE {{baseUrl}}{{apiPrefix}}/modifier-groups/{{modifierGroupId}}
+Origin: {{origin}}
+Referer: {{origin}}/

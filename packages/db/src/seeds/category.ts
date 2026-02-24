@@ -36,11 +36,12 @@ export default async function seedCategories() {
       const { catalogName, workstationName, activeFrom, ...categoryData } = cat;
 
       return {
-        ...categoryData,
         organizationId: org.id,
-        catalogId: catalogRecord.id,
-        workstationId: workstationRecord.id,
+        ...categoryData,
         activeFrom: new Date(activeFrom),
+
+        workstationId: workstationRecord.id,
+        catalogId: catalogRecord.id,
       };
     })
   );

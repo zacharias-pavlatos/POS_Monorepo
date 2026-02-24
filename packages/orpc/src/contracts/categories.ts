@@ -71,8 +71,8 @@ const categoryContract = oc
       .output(
         SelectCategorySchema.extend({
           products: z.array(
-            SelectCategoryProductSchema.extend({
-              product: SelectProductSchema,
+            SelectProductSchema.extend({
+              displayOrder: z.number().int(),
             })
           ),
         })
@@ -91,18 +91,17 @@ const categoryContract = oc
       .output(
         SelectCategorySchema.extend({
           products: z.array(
-            SelectCategoryProductSchema.extend({
-              product: SelectProductSchema.extend({
-                modifierGroups: z.array(
-                  SelectModifierGroupSchema.extend({
-                    modifiers: z.array(
-                      SelectModifierSchema.extend({
-                        dependencies: z.array(SelectModifierOptionDependencySchema),
-                      })
-                    ),
-                  })
-                ),
-              }),
+            SelectProductSchema.extend({
+              displayOrder: z.number().int(),
+              modifierGroups: z.array(
+                SelectModifierGroupSchema.extend({
+                  modifiers: z.array(
+                    SelectModifierSchema.extend({
+                      dependencies: z.array(SelectModifierOptionDependencySchema),
+                    })
+                  ),
+                })
+              ),
             })
           ),
         })

@@ -1,0 +1,76 @@
+# Restaurant API – REST Client
+#
+# Endpoints: /restaurant
+# Purpose:
+# - Restaurant details and settings (1:1 with organization).
+# - Each organization has exactly one restaurant.
+# - No delete endpoint — removing the restaurant would break the organization.
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - No {id} in paths — the restaurant is identified by organization context.
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+
+### Get restaurant details - ok
+GET {{baseUrl}}{{apiPrefix}}/restaurant
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+### Create restaurant (only once per organization) - ok
+POST {{baseUrl}}{{apiPrefix}}/restaurant
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "The Golden Fork",
+  "description": "Fine dining experience in the heart of downtown",
+  "cuisineType": "Italian",
+  "website": "https://goldenfork.com",
+  "image": "https://example.com/image.jpg",
+  "countryCode": "US",
+  "vatNumber": "123456789",
+  "taxOffice": "Tax Office",
+  "profession": "Profession",
+  "currency": "USD",
+
+  "state": "NY",
+  "city": "New York",
+  "streetAddress": "123 Main Street",
+  "zipCode": "10001",
+  "longitude": "23.456789",
+  "latitude": "23.456789",
+
+  "phoneNumber": "+1-555-123-4567",
+  "email": "info@goldenfork.com",
+  "isActive": true
+
+}
+
+
+### Update restaurant (only include fields you want to change) - ok
+PATCH {{baseUrl}}{{apiPrefix}}/restaurant
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "phoneNumber": "+1-555-NEW-PHONE",
+  "website": "https://goldenfork-updated.com"
+}

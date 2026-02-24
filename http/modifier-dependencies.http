@@ -1,0 +1,161 @@
+# Modifier Dependencies API – REST Client
+#
+# Endpoints: /modifier-dependencies
+# Purpose:
+# - Dependency rules between modifiers — controls price overrides
+#   and conditional availability.
+# - Each rule says: "When [trigger] is selected, [target] costs [price]
+#   and isAvailable = [isAvailable]."
+# - Only exceptions to defaults are stored:
+#   • Default price = modifier.basePrice
+#   • Default isAvailable = true
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Create product → modifier groups → modifiers first
+# 3) Run requests here to create dependency rules
+#
+# Common Use Cases:
+# - Dynamic pricing: Coffee blend costs more in large cups
+# - Conditional visibility: Hide "Sugar Type" when "No Sugar" is selected
+#
+# Notes:
+# - Replace {{dependencyId}}, {{modifierId}} with UUIDs from responses.
+# - Prices are in cents (e.g., 80 = €0.80 or $0.80)
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@dependencyId = ac0434db-3a70-4c21-b4e0-55568de4ee20
+@modifierId = 7cc21ba2-ccd9-4475-b777-efc89bbfbee4
+@triggerModifierId = 
+
+
+### List dependencies affecting a modifier (what changes when others are selected)-ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-dependencies/by-modifier/{{modifierId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### List dependencies triggered by a modifier (what this modifier affects)-ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-dependencies/by-trigger/{{modifierId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve a dependency by id-ok
+GET {{baseUrl}}{{apiPrefix}}/modifier-dependencies/{{dependencyId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+###############################################################
+### Use Case 1: Dynamic Pricing - Coffee Blend
+# "Ethiopia" blend costs €0.50 base, but €0.80 for Medium, €1.30 for Large
+###############################################################
+
+### Ethiopia + Medium = €0.80 (override from base €0.50)
+POST {{baseUrl}}{{apiPrefix}}/modifier-dependencies
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "modifierId": "d4f55f05-b368-49c4-9f0f-9f770ad9b8cb",
+  "dependsOnModifierId": "69226a3c-6f2b-4a71-9852-05516fc2a968",
+  "price": 80,
+  "isAvailable": true
+}
+
+# {
+#   "modifierId": "d4f55f05-b368-49c4-9f0f-9f770ad9b8cb",
+#   "dependsOnModifierId": "487b9a36-4355-4abe-8ff7-aae4441e7380",
+#   "price": 130,
+#   "isAvailable": true
+# }
+
+
+###############################################################
+### Use Case 2: Conditional Visibility 
+###  Hide sugar type options when "No Sugar" is selected
+###############################################################
+
+### White Sugar hidden when "No Sugar" selected - ok
+# "When the customer selects No Sugar (from Sugar Level group), 
+# then White Sugar (from Sugar Type group) becomes unavailable (hidden)."
+POST {{baseUrl}}{{apiPrefix}}/modifier-dependencies
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+# { 
+#   // White Sugar (Sugar Type group)
+#   "modifierId": "4be12881-73f2-4dbf-8022-04c4458c701a", 
+#   // No Sugar (Sugar Level group)
+#   "dependsOnModifierId": "7cc21ba2-ccd9-4475-b777-efc89bbfbee4",
+#   "isAvailable": false,
+#   "price": 0
+# }
+
+# {
+#   "modifierId": "a7f7bae3-8356-425f-8caa-384340d8f526",
+#   "dependsOnModifierId": "7cc21ba2-ccd9-4475-b777-efc89bbfbee4",
+#   "isAvailable": false,
+#   "price": 0
+# }
+
+{
+  "modifierId": "3ce1fda3-c3d2-49c2-90ba-21440dc94458",
+  "dependsOnModifierId": "7cc21ba2-ccd9-4475-b777-efc89bbfbee4",
+  "isAvailable": false,
+  "price": 0
+}
+
+#####################################################################
+### Use Case 3: Complex Pricing - Premium Toppings
+# Premium toppings cost more on large pizzas
+#####################################################################
+### Extra Truffle Oil: €3 base, €5 on Large
+POST {{baseUrl}}{{apiPrefix}}/modifier-dependencies
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "modifierId": "truffle-oil-modifier-id",
+  "dependsOnModifierId": "large-pizza-modifier-id",
+  "price": 500,
+  "isAvailable": true
+}
+
+
+### Update a dependency rule (only include fields you want to change)
+PATCH {{baseUrl}}{{apiPrefix}}/modifier-dependencies/{{dependencyId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "price": 150
+}
+
+### Make modifier available
+PATCH {{baseUrl}}{{apiPrefix}}/modifier-dependencies/{{dependencyId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "isAvailable": true
+}
+
+### Delete a dependency rule
+DELETE {{baseUrl}}{{apiPrefix}}/modifier-dependencies/{{dependencyId}}
+Origin: {{origin}}
+Referer: {{origin}}/

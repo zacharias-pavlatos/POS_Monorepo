@@ -1,0 +1,299 @@
+# Offers API – REST Client
+#
+# Endpoints: /offers
+# Purpose:
+# - Promotions and discounts system for restaurant deals.
+# - Offers can target specific products, categories, or entire orders.
+# - Supports time-based scheduling (happy hours), priority ordering, and stackable discounts.
+#
+# Discount Types:
+# - percentage: 20% off
+# - fixed_amount: €5 off
+# - fixed_price: Set final price to €10
+# - bogo: Buy one get one (e.g., 50% off second item)
+#
+# Auth / cookies:
+# - If your API uses Better Auth cookie sessions, keep @cookieJar consistent across files.
+# - Origin protection: include Origin + Referer headers on protected routes.
+#
+# Usage flow:
+# 1) Run Auth login in auth.http (stores cookie in jar)
+# 2) Create products and categories first
+# 3) Run requests here (cookie is reused via the same jar name)
+#
+# Notes:
+# - Replace {{offerId}}, {{categoryId}}, {{productId}} with UUIDs from responses.
+# - Prices/discounts in cents (500 = €5.00 or $5.00)
+# - If your API is mounted under /api, set @apiPrefix = /api
+
+@baseUrl = http://localhost:3001
+@origin = http://localhost:3000
+@cookieJar = betterauth
+
+# If your server mounts routes under /api, set this to /api. Otherwise leave empty.
+@apiPrefix = /api
+
+# IDs (paste values from responses)
+@offerId = 
+@categoryId = 
+@productId = 
+
+
+### List all offers
+GET {{baseUrl}}{{apiPrefix}}/offers
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### List currently active offers (based on date/time rules)
+GET {{baseUrl}}{{apiPrefix}}/offers/active
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Retrieve an offer by id
+GET {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CREATE OFFERS - Different Types
+# ═══════════════════════════════════════════════════════════════════════════
+
+### Happy Hour - 20% off all drinks (category-wide, time-based)
+POST {{baseUrl}}{{apiPrefix}}/offers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Happy Hour",
+  "description": "20% off all drinks Monday-Friday 5-7pm",
+  "discountType": "percentage",
+  "discountValue": 20,
+  "scope": "category",
+  "validFrom": "2024-01-01T00:00:00Z",
+  "validUntil": "2024-12-31T23:59:59Z",
+  "activeDaysOfWeek": [0, 1, 2, 3, 4],
+  "startTime": "17:00:00",
+  "endTime": "19:00:00",
+  "priority": 5,
+  "isStackable": false,
+  "isActive": true
+}
+
+### BOGO Burgers - Buy one get one 50% off (product-specific)
+POST {{baseUrl}}{{apiPrefix}}/offers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "BOGO Burgers",
+  "description": "Buy one burger, get the second 50% off",
+  "discountType": "bogo",
+  "discountValue": 50,
+  "scope": "product",
+  "validFrom": "2024-06-01T00:00:00Z",
+  "validUntil": "2024-08-31T23:59:59Z",
+  "priority": 3,
+  "isStackable": true,
+  "isActive": true,
+  "maxRedemptions": 1000
+}
+
+### Summer Special - €5 off orders over €30 (order-level)
+POST {{baseUrl}}{{apiPrefix}}/offers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Summer Special",
+  "description": "€5 off orders over €30",
+  "discountType": "fixed_amount",
+  "discountValue": 500,
+  "scope": "order",
+  "validFrom": "2024-06-01T00:00:00Z",
+  "validUntil": "2024-08-31T23:59:59Z",
+  "priority": 1,
+  "isStackable": true,
+  "isActive": true
+}
+
+### Lunch Deal - Any pasta €8 fixed price (category-wide, time-based)
+POST {{baseUrl}}{{apiPrefix}}/offers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Lunch Deal - Pasta",
+  "description": "Any pasta for just €8 during lunch hours",
+  "discountType": "fixed_price",
+  "discountValue": 800,
+  "scope": "category",
+  "validFrom": "2024-01-01T00:00:00Z",
+  "activeDaysOfWeek": [0, 1, 2, 3, 4],
+  "startTime": "11:00:00",
+  "endTime": "15:00:00",
+  "priority": 10,
+  "isStackable": false,
+  "isActive": true
+}
+
+### Weekend Brunch Special - 15% off breakfast items (Saturday-Sunday)
+POST {{baseUrl}}{{apiPrefix}}/offers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Weekend Brunch Special",
+  "description": "15% off all breakfast items on weekends",
+  "discountType": "percentage",
+  "discountValue": 15,
+  "scope": "category",
+  "validFrom": "2024-01-01T00:00:00Z",
+  "activeDaysOfWeek": [5, 6],
+  "startTime": "08:00:00",
+  "endTime": "14:00:00",
+  "priority": 5,
+  "isStackable": true,
+  "isActive": true
+}
+
+### Flash Sale - Espresso €1 off (product-specific, limited redemptions)
+POST {{baseUrl}}{{apiPrefix}}/offers
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "name": "Espresso Flash Sale",
+  "description": "€1 off espresso - limited time!",
+  "discountType": "fixed_amount",
+  "discountValue": 100,
+  "scope": "product",
+  "validFrom": "2024-03-15T00:00:00Z",
+  "validUntil": "2024-03-15T23:59:59Z",
+  "priority": 8,
+  "isStackable": true,
+  "isActive": true,
+  "maxRedemptions": 50
+}
+
+
+### Update an offer (only include fields you want to change)
+PATCH {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "discountValue": 25,
+  "description": "Updated: 25% off all drinks!"
+}
+
+### Deactivate an offer
+PATCH {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "isActive": false
+}
+
+### Delete an offer
+DELETE {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CATEGORY TARGETING - Assign categories to offers
+# ═══════════════════════════════════════════════════════════════════════════
+
+### List categories assigned to an offer
+GET {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/categories
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Assign "Drinks" category to Happy Hour offer
+POST {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/categories
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "categoryId": "{{categoryId}}"
+}
+
+### Assign "Appetizers" category to Happy Hour offer
+POST {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/categories
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "categoryId": "appetizers-category-id"
+}
+
+### Remove a category from an offer
+DELETE {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/categories/{{categoryId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PRODUCT TARGETING - Assign specific products to offers
+# ═══════════════════════════════════════════════════════════════════════════
+
+### List products assigned to an offer
+GET {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/products
+Origin: {{origin}}
+Referer: {{origin}}/
+
+### Assign "Classic Burger" to BOGO offer
+POST {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/products
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "productId": "{{productId}}"
+}
+
+### Assign "Cheese Burger" to BOGO offer
+POST {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/products
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}/
+
+{
+  "productId": "cheese-burger-id"
+}
+
+### Remove a product from an offer
+DELETE {{baseUrl}}{{apiPrefix}}/offers/{{offerId}}/products/{{productId}}
+Origin: {{origin}}
+Referer: {{origin}}/
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TYPICAL WORKFLOWS
+# ═══════════════════════════════════════════════════════════════════════════
+
+### Workflow 1: Create Happy Hour with category targeting
+# 1. Create the offer (above)
+# 2. Get your "Drinks" category ID from GET /categories
+# 3. Assign category to offer: POST /offers/{offerId}/categories
+
+### Workflow 2: Create BOGO deal for specific burgers
+# 1. Create BOGO offer (above)
+# 2. Get burger product IDs from GET /products
+# 3. Assign each burger: POST /offers/{offerId}/products
+
+### Workflow 3: Create order-level discount
+# 1. Create order-scoped offer with fixed_amount
+# 2. No category/product assignment needed (applies to entire order)

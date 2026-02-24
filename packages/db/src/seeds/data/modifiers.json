@@ -34,5 +34,44 @@
       { "name": "Medium", "basePrice": 0 },
       { "name": "Sweet", "basePrice": 0 }
     ]
+  },
+
+  {
+    "name": "Choose Your Pizza",
+    "productName": "Pizza + Drink Combo",
+    "minSelections": 1,
+    "maxSelections": 1,
+    "isRequired": true,
+    "modifiers": [
+      {
+        "name": "Margherita",
+        "basePrice": 0,
+        "referencedProductName": "Margherita"
+      },
+      {
+        "name": "Pepperoni",
+        "basePrice": 100,
+        "referencedProductName": "Pepperoni"
+      }
+    ]
+  },
+  {
+    "name": "Choose Your Drink",
+    "productName": "Pizza + Drink Combo",
+    "minSelections": 1,
+    "maxSelections": 1,
+    "isRequired": true,
+    "modifiers": [
+      {
+        "name": "Cola",
+        "basePrice": 0,
+        "referencedProductName": "Cola"
+      },
+      {
+        "name": "Espresso",
+        "basePrice": 50,
+        "referencedProductName": "Espresso"
+      }
+    ]
   }
 ]
