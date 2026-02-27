@@ -23,7 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         {children}
         <ReactQueryDevtools initialIsOpen={false} />
-        <Toaster position="top-center" />
+        <Toaster position="top-right" />
       </NextThemesProvider>
     </QueryClientProvider>
   );

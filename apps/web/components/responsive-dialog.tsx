@@ -67,7 +67,7 @@ export function ResponsiveDialog({
             <DrawerTitle>{title}</DrawerTitle>
             {description && <DrawerDescription>{description}</DrawerDescription>}
           </DrawerHeader>
-          <div className="px-4 pb-4">{children}</div>
+          <div className="max-h-[80vh] overflow-y-auto px-4 pb-4">{children}</div>
         </DrawerContent>
       </Drawer>
     );
@@ -76,7 +76,7 @@ export function ResponsiveDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

@@ -15,6 +15,7 @@ import {
   Building2,
   SquareTerminal,
   Home,
+  BookText,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -135,6 +136,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: 'Home',
       url: `/organizations/${orgId}`,
       icon: Home,
+    },
+    {
+      title: 'Catalog',
+      url: `/organizations/${orgId}/catalog`,
+      icon: BookText,
     },
     {
       title: 'Settings',
