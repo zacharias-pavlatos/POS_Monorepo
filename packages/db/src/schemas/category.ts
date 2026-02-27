@@ -48,14 +48,13 @@ export const category = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
-    //TODO: Fix on cascade based on business logic
+    //TODO: Decide on cascade based on business logic
     catalogId: uuid('catalog_id')
-      .references(() => catalog.id, { onDelete: 'cascade' })
-      .notNull(),
-
+      .notNull()
+      .references(() => catalog.id, { onDelete: 'cascade' }),
     /** Workstation where products in this category are prepared (e.g., "Main Kitchen", "Cold Kitchen", "Bar") */
     workstationId: uuid('workstation_id')
-      .notNull() // MANDATORY
+      .notNull()
       .references(() => workstation.id),
 
     name: varchar('name', { length: 255 }).notNull(),
@@ -71,15 +70,15 @@ export const category = pgTable(
     servingOrder: integer('serving_order').notNull().default(0),
 
     /* Category becomes active from this date */
-    activeFrom: timestamp('active_from', { withTimezone: true }),
+    fromDate: timestamp('from_date', { withTimezone: true }).notNull().defaultNow(),
     /* Category expires on this date (null = no expiration) */
-    activeUntil: timestamp('active_until', { withTimezone: true }),
+    toDate: timestamp('to_date', { withTimezone: true }),
     /* Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday) */
-    activeDaysOfWeek: integer('active_days_of_week').array(),
+    weekDays: integer('week_days').array(),
     /* Daily start time "HH:MM:SS" */
-    startTime: time('start_time'),
+    fromTime: time('from_time'),
     /* Daily end time "HH:MM:SS" */
-    endTime: time('end_time'),
+    toTime: time('to_time'),
     /* Category is active or not */
     isActive: boolean('is_active').notNull().default(true),
 
@@ -189,8 +188,7 @@ export const InsertCategorySchema = createInsertSchema(category, {
   description: field => field.max(1000).optional(),
   internalNotes: field => field.max(1000).optional(),
   servingOrder: field => field.int().min(0).optional(),
-  // TODO: Fix this
-  activeDaysOfWeek: field => field.optional().nullable(),
+  weekDays: field => field.optional().nullable(),
   color: field =>
     field
       .regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color')
@@ -206,16 +204,16 @@ export const InsertCategorySchema = createInsertSchema(category, {
   })
   .extend({
     // Date fields - accept ISO strings from HTTP
-    activeFrom: z.coerce.date().optional().nullable(),
-    activeUntil: z.coerce.date().optional().nullable(),
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional().nullable(),
 
     // Time fields - accept HH:MM or HH:MM:SS
-    startTime: z
+    fromTime: z
       .string()
       .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
       .optional()
       .nullable(),
-    endTime: z
+    toTime: z
       .string()
       .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
       .optional()

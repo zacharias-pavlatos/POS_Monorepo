@@ -14,12 +14,14 @@ import {
   uuid,
   varchar,
   uniqueIndex,
+  timestamp,
+  time,
 } from 'drizzle-orm/pg-core';
 import { organization } from './auth-schema';
 import { timestamps } from './helpers';
 import { relations } from 'drizzle-orm';
 import { modifierGroup } from './modifier';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categoryProduct } from './category';
 import { workstation } from './workstation';
@@ -61,8 +63,16 @@ export const product = pgTable(
     // allergens: text('allergens').array(), // ['gluten', 'dairy', 'nuts']
     // nutritionalInfo: text('nutritional_info'), // JSON string
 
-    //TODO: Maybe add hours of availability days and period
-
+    /* Product becomes active from this date */
+    fromDate: timestamp('from_date', { withTimezone: true }).notNull().defaultNow(),
+    /* Product expires on this date (null = no expiration) */
+    toDate: timestamp('to_date', { withTimezone: true }),
+    /* Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday) */
+    weekDays: integer('week_days').array(),
+    /* Daily start time "HH:MM:SS" */
+    fromTime: time('from_time'),
+    /* Daily end time "HH:MM:SS" */
+    toTime: time('to_time'),
     isActive: boolean('is_active').notNull().default(true),
 
     ...timestamps,
@@ -110,13 +120,30 @@ export const InsertProductSchema = createInsertSchema(product, {
   name: field => field.min(1).max(255),
   description: field => field.max(1000).optional(),
   basePrice: field => field.int().min(0),
+  weekDays: field => field.optional().nullable(),
   isActive: field => field.optional(),
-}).omit({
-  organizationId: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-});
+})
+  .omit({
+    organizationId: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+  })
+  .extend({
+    // ✅ Add these
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional().nullable(),
+    fromTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .optional()
+      .nullable(),
+    toTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .optional()
+      .nullable(),
+  });
 export const PatchProductSchema = InsertProductSchema.partial();
 
 // ==========================================================================

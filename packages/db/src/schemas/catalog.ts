@@ -15,6 +15,7 @@ import {
   time,
   uniqueIndex,
   index,
+  timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
@@ -47,24 +48,24 @@ export const catalog = pgTable(
 
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
-    /** Internal notes for staff (not shown to customers) */
     internalNotes: text('internal_notes'),
-
     /** Display order for catalog selection (lower = first) */
     displayOrder: integer('display_order').notNull().default(0),
-    /** Daily availability start time "HH:MM:SS" (null = available from midnight) */
-    availableFrom: time('available_from'),
-    /** Daily availability end time "HH:MM:SS" (null = available until midnight) */
-    availableUntil: time('available_until'),
-    /** Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday, null = all days) */
-    activeDaysOfWeek: integer('active_days_of_week').array(),
 
-    /** Catalog color for UI display (hex format, e.g., "#FF5733") */
-    color: varchar('color', { length: 7 }),
-    /** Catalog image URL or path */
-    image: text('image'),
-    /** Whether the catalog is currently active */
+    /* Catalog becomes active from this date */
+    fromDate: timestamp('from_date', { withTimezone: true }).notNull().defaultNow(),
+    /* Catalog expires on this date (null = no expiration) */
+    toDate: timestamp('to_date', { withTimezone: true }),
+    /* Days of the week when active: [0,1,2,3,4,5,6] (0=Monday, 6=Sunday) */
+    weekDays: integer('week_days').array(),
+    /* Daily start time "HH:MM:SS" */
+    fromTime: time('from_time'),
+    /* Daily end time "HH:MM:SS" */
+    toTime: time('to_time'),
     isActive: boolean('is_active').notNull().default(true),
+
+    color: varchar('color', { length: 7 }),
+    image: text('image'),
 
     ...timestamps,
   },
@@ -105,20 +106,37 @@ export const InsertCatalogSchema = createInsertSchema(catalog, {
   description: field => field.max(1000).optional(),
   internalNotes: field => field.max(1000).optional(),
   displayOrder: field => field.int().min(0).optional(),
-  // TODO: Fix this
-  activeDaysOfWeek: field => field.optional().nullable(),
+  weekDays: field => field.optional().nullable(),
   color: field =>
     field
       .regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color')
       .optional()
       .nullable(),
   image: field => field.url('Invalid URL').optional().nullable(),
-}).omit({
-  organizationId: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-});
+})
+  .omit({
+    organizationId: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+  })
+  .extend({
+    // Date fields - accept ISO strings from HTTP
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional().nullable(),
+
+    // Time fields - accept HH:MM or HH:MM:SS
+    fromTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .optional()
+      .nullable(),
+    toTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
+      .optional()
+      .nullable(),
+  });
 export const PatchCatalogSchema = InsertCatalogSchema.partial();
 
 // ============================================================================
