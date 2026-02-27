@@ -8,3 +8,4 @@ export { ImageUploadField, type ImageUploadFieldProps } from './image-upload-fie
 export { WeekDaysField, type WeekDaysFieldProps } from './week-days-field';
 export { ColorPickerField, type ColorPickerFieldProps } from './color-picker-field';
 export { CollapsibleSection } from './collapsible-section';
+export { SelectField, type SelectFieldProps } from './select-field';
