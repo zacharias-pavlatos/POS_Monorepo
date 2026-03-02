@@ -1,3 +1,4 @@
+import { ORPCError } from '@orpc/server';
 import { workstationRepository } from '@repo/db/repositories';
 
 import { organizationProcedure } from '../procedures';
@@ -95,15 +96,28 @@ const workstationRouter = {
 
   delete: organizationProcedure.workstations.delete.handler(
     async ({ context, input, errors }) => {
-      const res = await workstationRepository({
+      const repo = workstationRepository({
         db: context.db,
         organizationId: context.activeOrganizationId,
-      }).hardDelete(input.id);
+      });
+
+      const withCategories = await repo.findByIdWithCategories(input.id);
+
+      if (!withCategories) {
+        throw errors.NOT_FOUND({ data: { workstationId: input.id } });
+      }
+
+      if (withCategories.categories.length > 0) {
+        const count = withCategories.categories.length;
+        throw new ORPCError('CONFLICT', {
+          message: `Cannot delete: ${count} ${count === 1 ? 'category is' : 'categories are'} still assigned to this workstation. Reassign them first.`,
+        });
+      }
+
+      const res = await repo.hardDelete(input.id);
 
       if (!res) {
-        throw errors.NOT_FOUND({
-          data: { workstationId: input.id },
-        });
+        throw errors.NOT_FOUND({ data: { workstationId: input.id } });
       }
       return res;
     }

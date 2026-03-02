@@ -56,8 +56,8 @@ export function WorkstationsPage() {
       setEditingWorkstation(undefined);
       await queryClient.invalidateQueries({ queryKey: ['workstations'] });
     },
-    onError: () => {
-      toast.error('Failed to delete workstation');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete workstation');
     },
   });
 
