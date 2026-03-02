@@ -149,7 +149,11 @@ export function CategoryForm({
         control={form.control}
         render={({ field, fieldState }) => (
           <SelectField
-            field={field}
+            field={{
+              ...field,
+              value: field.value != null ? String(field.value) : '',
+              onChange: (val: string) => field.onChange(Number(val)),
+            }}
             fieldState={fieldState}
             label="Serving Order"
             description="Which course this category fires with"
