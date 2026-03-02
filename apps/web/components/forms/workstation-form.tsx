@@ -59,7 +59,7 @@ export function WorkstationForm({
           <TextField
             field={field}
             fieldState={fieldState}
-            label="Catalog Name"
+            label="Workstation Name"
             placeholder="e.g. Summer Menu 2026"
             required
           />
@@ -74,7 +74,7 @@ export function WorkstationForm({
             field={field}
             fieldState={fieldState}
             label="Description"
-            placeholder="Brief description of this catalog..."
+            placeholder="Brief description of this workstation..."
             maxLength={1000}
           />
         )}
@@ -96,7 +96,7 @@ export function WorkstationForm({
             field={field}
             fieldState={fieldState}
             label="Active"
-            description="Make this catalog visible to customers"
+            description="Make this workstation visible to customers"
           />
         )}
       />
