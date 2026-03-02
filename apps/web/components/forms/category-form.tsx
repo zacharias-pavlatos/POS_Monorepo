@@ -149,19 +149,15 @@ export function CategoryForm({
         control={form.control}
         render={({ field, fieldState }) => (
           <SelectField
-            field={{
-              ...field,
-              value: field.value != null ? String(field.value) : '',
-              onChange: (val: string) => field.onChange(Number(val)),
-            }}
+            field={field}
             fieldState={fieldState}
             label="Serving Order"
             description="Which course this category fires with"
             placeholder="Select a course"
             options={[
-              { value: '1', label: '1 - Appetizer' },
-              { value: '2', label: '2 - Main Course' },
-              { value: '3', label: '3 - Dessert' },
+              { value: 1, label: '1 - Appetizer' },
+              { value: 2, label: '2 - Main Course' },
+              { value: 3, label: '3 - Dessert' },
             ]}
           />
         )}

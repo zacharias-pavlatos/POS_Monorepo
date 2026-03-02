@@ -14,18 +14,19 @@ import {
 
 import type { FieldRenderProps, BaseFieldUIProps } from './types';
 
-type SelectOption = {
-  value: string;
+type SelectOption<TValue extends string | number = string> = {
+  value: TValue;
   label: string;
 };
 
-export type SelectFieldProps = FieldRenderProps &
-  BaseFieldUIProps & {
-    placeholder?: string;
-    options: SelectOption[];
-  };
+export type SelectFieldProps<TValue extends string | number = string> =
+  FieldRenderProps &
+    BaseFieldUIProps & {
+      placeholder?: string;
+      options: SelectOption<TValue>[];
+    };
 
-export function SelectField({
+export function SelectField<TValue extends string | number = string>({
   field,
   fieldState,
   label,
@@ -34,7 +35,7 @@ export function SelectField({
   required,
   disabled,
   options,
-}: SelectFieldProps) {
+}: SelectFieldProps<TValue>) {
   return (
     <Field data-invalid={fieldState.invalid || undefined}>
       <FieldLabel htmlFor={field.name}>
@@ -42,8 +43,11 @@ export function SelectField({
         {required && <span className="text-destructive"> *</span>}
       </FieldLabel>
       <Select
-        value={field.value ?? ''}
-        onValueChange={field.onChange}
+        value={field.value != null ? String(field.value) : ''}
+        onValueChange={val => {
+          const match = options.find(o => String(o.value) === val);
+          field.onChange(match?.value ?? val);
+        }}
         disabled={disabled}
       >
         <SelectTrigger
