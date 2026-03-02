@@ -49,6 +49,19 @@ export function CatalogsPage() {
     },
   });
 
+  const deleteCatalogMutation = useMutation({
+    mutationFn: () => rpcClient.catalogs.delete({ id: editingCatalog!.id }),
+    onSuccess: async () => {
+      toast.success('Catalog deleted');
+      setDialogOpen(false);
+      setEditingCatalog(undefined);
+      await queryClient.invalidateQueries({ queryKey: ['catalogs'] });
+    },
+    onError: () => {
+      toast.error('Failed to delete catalog');
+    },
+  });
+
   function handleCreate() {
     setEditingCatalog(undefined);
     setDialogOpen(true);
@@ -94,6 +107,8 @@ export function CatalogsPage() {
           onSubmit={handleSubmit}
           isSubmitting={upsertCatalogMutation.isPending}
           submitLabel={editingCatalog ? 'Save Changes' : 'Create Catalog'}
+          onDelete={editingCatalog ? () => deleteCatalogMutation.mutate() : undefined}
+          isDeleting={deleteCatalogMutation.isPending}
         />
       </ResponsiveDialog>
     </div>

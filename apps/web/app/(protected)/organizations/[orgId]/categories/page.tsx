@@ -56,6 +56,19 @@ export function CategoriesPage({ params }: { params: { catalogId: string } }) {
     },
   });
 
+  const deleteCategoryMutation = useMutation({
+    mutationFn: () => rpcClient.categories.delete({ id: editingCategory!.id }),
+    onSuccess: async () => {
+      toast.success('Category deleted');
+      setDialogOpen(false);
+      setEditingCategory(undefined);
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+    onError: () => {
+      toast.error('Failed to delete category');
+    },
+  });
+
   function handleCreate() {
     setEditingCategory(undefined);
     setDialogOpen(true);
@@ -108,6 +121,8 @@ export function CategoriesPage({ params }: { params: { catalogId: string } }) {
           onSubmit={handleSubmit}
           isSubmitting={upsertCategoryMutation.isPending}
           submitLabel={editingCategory ? 'Save Changes' : 'Create Category'}
+          onDelete={editingCategory ? () => deleteCategoryMutation.mutate() : undefined}
+          isDeleting={deleteCategoryMutation.isPending}
         />
       </ResponsiveDialog>
     </div>

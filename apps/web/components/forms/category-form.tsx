@@ -3,10 +3,21 @@
 import * as React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 
-import { Button } from '@repo/ui/components/button';
+import { Button, buttonVariants } from '@repo/ui/components/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@repo/ui/components/alert-dialog';
 import {
   TextField,
   TextareaField,
@@ -46,6 +57,8 @@ type CategoryFormProps = {
   onSubmit: (values: CategoryFormValues) => void | Promise<void>;
   isSubmitting?: boolean;
   submitLabel?: string;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 };
 
 export function CategoryForm({
@@ -54,6 +67,8 @@ export function CategoryForm({
   onSubmit,
   isSubmitting,
   submitLabel = 'Save',
+  onDelete,
+  isDeleting,
 }: CategoryFormProps) {
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
@@ -248,10 +263,53 @@ export function CategoryForm({
         />
       </CollapsibleSection>
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-        {submitLabel}
-      </Button>
+      <div className="flex gap-2">
+        {onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={isDeleting || isSubmitting}
+                className="flex-1"
+              >
+                {isDeleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete category?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. All products in this category will lose
+                  their category assignment.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className={buttonVariants({ variant: 'destructive' })}
+                  onClick={onDelete}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        <Button
+          type="submit"
+          disabled={isSubmitting || isDeleting}
+          className="flex-1"
+        >
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+          {submitLabel}
+        </Button>
+      </div>
     </form>
   );
 }

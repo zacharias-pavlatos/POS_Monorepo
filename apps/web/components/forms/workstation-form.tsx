@@ -3,10 +3,21 @@
 import * as React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { InsertWorkStationSchema } from '@repo/orpc/contracts';
-import { Button } from '@repo/ui/components/button';
+import { Button, buttonVariants } from '@repo/ui/components/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@repo/ui/components/alert-dialog';
 import {
   TextField,
   TextareaField,
@@ -30,6 +41,8 @@ type WorkstationFormProps = {
   onSubmit: (values: WorkstationFormValues) => void | Promise<void>;
   isSubmitting?: boolean;
   submitLabel?: string;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 };
 
 export function WorkstationForm({
@@ -37,6 +50,8 @@ export function WorkstationForm({
   onSubmit,
   isSubmitting,
   submitLabel = 'Save',
+  onDelete,
+  isDeleting,
 }: WorkstationFormProps) {
   const form = useForm<WorkstationFormValues>({
     resolver: zodResolver(workstationFormSchema),
@@ -59,8 +74,8 @@ export function WorkstationForm({
           <TextField
             field={field}
             fieldState={fieldState}
-            label="Catalog Name"
-            placeholder="e.g. Summer Menu 2026"
+            label="Workstation Name"
+            placeholder="e.g. Hot Kitchen"
             required
           />
         )}
@@ -101,10 +116,53 @@ export function WorkstationForm({
         )}
       />
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-        {submitLabel}
-      </Button>
+      <div className="flex gap-2">
+        {onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={isDeleting || isSubmitting}
+                className="flex-1"
+              >
+                {isDeleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete workstation?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. Categories assigned to this workstation
+                  will need to be reassigned.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className={buttonVariants({ variant: 'destructive' })}
+                  onClick={onDelete}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        <Button
+          type="submit"
+          disabled={isSubmitting || isDeleting}
+          className="flex-1"
+        >
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+          {submitLabel}
+        </Button>
+      </div>
     </form>
   );
 }

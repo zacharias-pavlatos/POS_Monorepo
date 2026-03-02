@@ -48,6 +48,19 @@ export function WorkstationsPage() {
     },
   });
 
+  const deleteWorkstationMutation = useMutation({
+    mutationFn: () => rpcClient.workstations.delete({ id: editingWorkstation!.id }),
+    onSuccess: async () => {
+      toast.success('Workstation deleted');
+      setDialogOpen(false);
+      setEditingWorkstation(undefined);
+      await queryClient.invalidateQueries({ queryKey: ['workstations'] });
+    },
+    onError: () => {
+      toast.error('Failed to delete workstation');
+    },
+  });
+
   function handleCreate() {
     setEditingWorkstation(undefined);
     setDialogOpen(true);
@@ -95,6 +108,8 @@ export function WorkstationsPage() {
           onSubmit={handleSubmit}
           isSubmitting={upsertWorkstationMutation.isPending}
           submitLabel={editingWorkstation ? 'Save Changes' : 'Create Workstation'}
+          onDelete={editingWorkstation ? () => deleteWorkstationMutation.mutate() : undefined}
+          isDeleting={deleteWorkstationMutation.isPending}
         />
       </ResponsiveDialog>
     </div>
