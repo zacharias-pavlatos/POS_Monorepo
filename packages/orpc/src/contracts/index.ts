@@ -1,4 +1,8 @@
 import { oc } from '@orpc/contract';
+import type {
+  InferContractRouterInputs,
+  InferContractRouterOutputs,
+} from '@orpc/contract';
 
 import restaurantContract from './restaurants';
 import workstationContract from './workstations';
@@ -47,3 +51,86 @@ export const appContract = oc
     modifierDependencies: modifierDependencyContract,
     offers: offerContract,
   });
+
+// ---------------------------------------------------------------------------
+// Inferred types — frontend imports these, never touches @repo/db
+// ---------------------------------------------------------------------------
+
+export type AppContractInputs = InferContractRouterInputs<typeof appContract>;
+export type AppContractOutputs = InferContractRouterOutputs<typeof appContract>;
+
+// ---------------------------------------------------------------------------
+// Re-export Zod schemas for form resolvers (zodResolver needs the runtime schema)
+// ---------------------------------------------------------------------------
+
+export {
+  InsertWorkStationSchema,
+  type InsertWorkStationInputType,
+  PatchWorkStationSchema,
+  type PatchWorkStationInputType,
+  SelectWorkStationSchema,
+  type SelectWorkStationType,
+} from '@repo/db/schema';
+
+export {
+  InsertCatalogSchema,
+  type InsertCatalogInputType,
+  PatchCatalogSchema,
+  type PatchCatalogInputType,
+  SelectCatalogSchema,
+  type SelectCatalogType,
+} from '@repo/db/schema';
+
+export {
+  InsertCategorySchema,
+  type InsertCategoryInputType,
+  PatchCategorySchema,
+  type PatchCategoryInputType,
+  SelectCategorySchema,
+  type SelectCategoryType,
+} from '@repo/db/schema';
+
+export {
+  InsertProductSchema,
+  type InsertProductInputType,
+  PatchProductSchema,
+  type PatchProductInputType,
+  SelectProductSchema,
+  type SelectProductType,
+} from '@repo/db/schema';
+
+export {
+  InsertModifierGroupSchema,
+  type InsertModifierGroupInputType,
+  PatchModifierGroupSchema,
+  type PatchModifierGroupInputType,
+  SelectModifierGroupSchema,
+  type SelectModifierGroupType,
+} from '@repo/db/schema';
+
+export {
+  InsertModifierSchema,
+  type InsertModifierInputType,
+  PatchModifierSchema,
+  type PatchModifierInputType,
+  SelectModifierSchema,
+  type SelectModifierType,
+} from '@repo/db/schema';
+
+export {
+  InsertModifierOptionDependencySchema,
+  type InsertModifierOptionDependencyInputType,
+  PatchModifierOptionDependencySchema,
+  type PatchModifierOptionDependencyInputType,
+  SelectModifierOptionDependencySchema,
+  type SelectModifierOptionDependencyType,
+} from '@repo/db/schema';
+
+export {
+  InsertOfferSchema,
+  type InsertOfferInputType,
+  PatchOfferSchema,
+  type PatchOfferInputType,
+  SelectOfferSchema,
+  type SelectOfferType,
+} from '@repo/db/schema';

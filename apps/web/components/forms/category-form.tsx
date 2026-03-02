@@ -20,33 +20,29 @@ import {
   CollapsibleSection,
 } from '@/components/form-fields';
 
+import { InsertCategorySchema } from '@repo/orpc/contracts';
+import type { SelectWorkStationType as Workstation } from '@repo/orpc/contracts';
+
 // ---------------------------------------------------------------------------
 // Schema
 // ---------------------------------------------------------------------------
 
-export const categoryFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().max(1000),
-  internalNotes: z.string().max(1000),
-  color: z.string().nullable(),
-  image: z.any().nullable(),
-  servingOrder: z.number(),
+/**
+ * z.coerce.date() infers as `unknown` since it accepts any input (string,
+ * number, etc.). RHF needs `Date`, so we override with z.date() here.
+ */
+const categoryFormSchema = InsertCategorySchema.omit({
+  id: true,
+  catalogId: true,
+}).extend({
   fromDate: z.date(),
   toDate: z.date().nullable(),
-  fromTime: z.string(),
-  toTime: z.string(),
-  weekDays: z.array(z.number()).nullable(),
-  isActive: z.boolean(),
 });
-
 export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 type CategoryFormProps = {
   defaultValues?: Partial<CategoryFormValues>;
+  workstations: Workstation[];
   onSubmit: (values: CategoryFormValues) => void | Promise<void>;
   isSubmitting?: boolean;
   submitLabel?: string;
@@ -54,6 +50,7 @@ type CategoryFormProps = {
 
 export function CategoryForm({
   defaultValues,
+  workstations,
   onSubmit,
   isSubmitting,
   submitLabel = 'Save',
@@ -61,6 +58,7 @@ export function CategoryForm({
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
+      workstationId: undefined,
       name: '',
       description: '',
       internalNotes: '',
@@ -69,8 +67,8 @@ export function CategoryForm({
       servingOrder: 0,
       fromDate: new Date(),
       toDate: null,
-      fromTime: '',
-      toTime: '',
+      fromTime: undefined,
+      toTime: undefined,
       weekDays: [],
       isActive: true,
       ...defaultValues,
@@ -111,7 +109,7 @@ export function CategoryForm({
           <TextField
             field={field}
             fieldState={fieldState}
-            label="Catalog Name"
+            label="Category Name"
             placeholder="e.g. Summer Menu 2026"
             required
           />
@@ -126,7 +124,7 @@ export function CategoryForm({
             field={field}
             fieldState={fieldState}
             label="Description"
-            placeholder="Brief description of this catalog..."
+            placeholder="Brief description of this category..."
             maxLength={1000}
           />
         )}
@@ -166,6 +164,24 @@ export function CategoryForm({
       />
 
       <Controller
+        name="workstationId"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <SelectField
+            field={field}
+            fieldState={fieldState}
+            label="Workstation"
+            description="Which workstation this category belongs to"
+            placeholder="Select a workstation"
+            options={workstations.map(workstation => ({
+              value: workstation.id,
+              label: workstation.name,
+            }))}
+          />
+        )}
+      />
+
+      <Controller
         name="isActive"
         control={form.control}
         render={({ field, fieldState }) => (
@@ -173,7 +189,7 @@ export function CategoryForm({
             field={field}
             fieldState={fieldState}
             label="Active"
-            description="Make this catalog visible to customers"
+            description="Make this category visible to customers"
           />
         )}
       />

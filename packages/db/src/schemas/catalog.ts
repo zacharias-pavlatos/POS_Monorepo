@@ -124,18 +124,9 @@ export const InsertCatalogSchema = createInsertSchema(catalog, {
     // Date fields - accept ISO strings from HTTP
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional().nullable(),
-
     // Time fields - accept HH:MM or HH:MM:SS
-    fromTime: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
-      .optional()
-      .nullable(),
-    toTime: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/)
-      .optional()
-      .nullable(),
+    fromTime: z.iso.time().optional().nullable(),
+    toTime: z.iso.time().optional().nullable(),
   });
 export const PatchCatalogSchema = InsertCatalogSchema.partial();
 

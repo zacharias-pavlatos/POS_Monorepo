@@ -19,29 +19,20 @@ import {
   CollapsibleSection,
 } from '@/components/form-fields';
 
+import { InsertCatalogSchema } from '@repo/orpc/contracts';
+
 // ---------------------------------------------------------------------------
 // Schema
 // ---------------------------------------------------------------------------
-
-export const catalogFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().max(1000),
-  internalNotes: z.string().max(1000),
+/**
+ * z.coerce.date() infers as `unknown` since it accepts any input (string,
+ * number, etc.). RHF needs `Date`, so we override with z.date() here.
+ */
+const catalogFormSchema = InsertCatalogSchema.omit({ id: true }).extend({
   fromDate: z.date(),
   toDate: z.date().nullable(),
-  fromTime: z.string(),
-  toTime: z.string(),
-  weekDays: z.array(z.number()).nullable(),
-  isActive: z.boolean(),
-  color: z.string().nullable(),
-  image: z.any().nullable(),
 });
-
 export type CatalogFormValues = z.infer<typeof catalogFormSchema>;
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 type CatalogFormProps = {
   defaultValues?: Partial<CatalogFormValues>;
@@ -64,8 +55,8 @@ export function CatalogForm({
       internalNotes: '',
       fromDate: new Date(),
       toDate: null,
-      fromTime: '',
-      toTime: '',
+      fromTime: undefined,
+      toTime: undefined,
       weekDays: [],
       isActive: true,
       color: null,
@@ -76,6 +67,7 @@ export function CatalogForm({
 
   const watchFromDate = form.watch('fromDate');
 
+  // TODO: On edit its always true because of the defaultValues -> fromDate: new Date(), need to come up with something smarter
   const hasSchedulingValues = !!(
     defaultValues?.fromTime ||
     defaultValues?.toTime ||

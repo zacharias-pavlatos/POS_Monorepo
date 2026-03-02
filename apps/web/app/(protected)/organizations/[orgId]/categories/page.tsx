@@ -1,51 +1,116 @@
 'use client';
 
-import { categoriesCollection } from '@/collections/categories';
+import * as React from 'react';
+import { Plus, Pencil } from 'lucide-react';
+import { toast } from '@repo/ui/components/sonner';
+
+import { Button } from '@repo/ui/components/button';
+import { ResponsiveDialog } from '@/components/responsive-dialog';
 import { rpcClient } from '@/lib/rpc-client';
-import { useLiveQuery } from '@tanstack/react-db';
-import { useState } from 'react';
-import { CreateProductForm } from '@/components/forms/create-product-form';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CategoryForm, type CategoryFormValues } from '@/components/forms/category-form';
 
-export default function CategoriesPage() {
-  const [name, setName] = useState('');
+import type { SelectCategoryType as Category } from '@repo/orpc/contracts';
 
-  const { data: categories } = useLiveQuery(q =>
-    q.from({ categories: categoriesCollection })
-  );
+export function CategoriesPage({ params }: { params: { catalogId: string } }) {
+  const { catalogId } = params;
 
-  rpcClient.categories.all().then(res => {
-    console.log('RPC Categories:', res);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editingCategory, setEditingCategory] = React.useState<Category>();
+
+  const queryClient = useQueryClient();
+
+  // Fetch workstations
+  const { data: workstations = [] } = useQuery({
+    queryKey: ['workstations'],
+    queryFn: () => rpcClient.workstations.all(),
   });
 
-  const createCategory = (name: string) => {
-    // categoriesCollection.insert({
-    //   id: 0,
-    //   name: name,
-    //   createdAt: new Date(),
-    //   updatedAt: new Date(),
-    //   deletedAt: null,
-    // });
-    const a = rpcClient.categories.create({
-      name,
-    });
-    console.log('Created category:', a);
-  };
+  // Fetch categories
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => rpcClient.categories.all(),
+  });
+
+  // One mutation that handles both create + update
+  const upsertCategoryMutation = useMutation({
+    mutationFn: async (values: CategoryFormValues) => {
+      return editingCategory
+        ? rpcClient.categories.update({ id: editingCategory.id, ...values })
+        : rpcClient.categories.create({ ...values, catalogId });
+    },
+    onSuccess: async () => {
+      toast.success(editingCategory ? 'Category updated' : 'Category created');
+
+      // Close dialog + reset edit state
+      setDialogOpen(false);
+      setEditingCategory(undefined);
+
+      // Refetch catalogs list
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+    onError: () => {
+      toast.error(
+        editingCategory ? 'Failed to update category' : 'Failed to create category'
+      );
+    },
+  });
+
+  function handleCreate() {
+    setEditingCategory(undefined);
+    setDialogOpen(true);
+  }
+
+  function handleEdit(category: Category) {
+    setEditingCategory(category);
+    setDialogOpen(true);
+  }
+
+  function handleSubmit(values: CategoryFormValues) {
+    upsertCategoryMutation.mutate(values);
+  }
 
   return (
     <div>
-      Categories
-      <div>
-        {categories.map(category => {
-          return <div key={category.id}>{category.name}</div>;
-        })}
+      <div className="flex items-center justify-between">
+        <h1>Categories</h1>
+        <Button onClick={handleCreate}>
+          <Plus className="size-4" />
+          Create Category
+        </Button>
       </div>
-      <input
-        placeholder="New category name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-      />
-      <button onClick={() => createCategory(name)}>Add category</button>
-      <CreateProductForm />
+
+      {categories.map(category => (
+        <div key={category.id} className="flex items-center justify-between">
+          <span>{category.name}</span>
+          <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
+            <Pencil className="size-4" />
+          </Button>
+        </div>
+      ))}
+
+      <ResponsiveDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title={editingCategory ? 'Edit Category' : 'Create Category'}
+        description={
+          editingCategory ? 'Update category details' : 'Create a new category'
+        }
+      >
+        <CategoryForm
+          key={editingCategory?.id ?? 'create'}
+          workstations={workstations ?? []}
+          defaultValues={
+            // When editing, use existing category values.
+            // When creating, pre-select the first workstation so the form starts valid. Is the one created at the init of the restaurant
+            editingCategory ?? { workstationId: workstations[0]?.id }
+          }
+          onSubmit={handleSubmit}
+          isSubmitting={upsertCategoryMutation.isPending}
+          submitLabel={editingCategory ? 'Save Changes' : 'Create Category'}
+        />
+      </ResponsiveDialog>
     </div>
   );
 }
+export default CategoriesPage;

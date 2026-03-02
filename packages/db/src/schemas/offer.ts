@@ -257,6 +257,8 @@ export const InsertOfferSchema = createInsertSchema(offer, {
   .extend({
     validFrom: z.coerce.date(),
     validUntil: z.coerce.date().optional().nullable(),
+    fromTime: z.iso.time().optional().nullable(),
+    toTime: z.iso.time().optional().nullable(),
   });
 
 export const PatchOfferSchema = InsertOfferSchema.partial();
