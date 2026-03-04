@@ -1,6 +1,7 @@
 import { productRepository } from '@repo/db/repositories';
 
 import { organizationProcedure } from '../procedures';
+import { productService } from '../services/product.service';
 
 const productRouter = {
   all: organizationProcedure.products.all.handler(({ context }) => {
@@ -65,6 +66,22 @@ const productRouter = {
     }
   ),
 
+  byCategory: organizationProcedure.products.byCategory.handler(
+    async ({ context, input, errors }) => {
+      const products = await productRepository({
+        db: context.db,
+        organizationId: context.activeOrganizationId,
+      }).findByCategory(input.categoryId);
+
+      if (!products) {
+        throw errors.NOT_FOUND({
+          data: { categoryId: input.categoryId },
+        });
+      }
+      return products;
+    }
+  ),
+
   create: organizationProcedure.products.create.handler(
     async ({ context, input, errors }) => {
       const res = await productRepository({
@@ -78,6 +95,21 @@ const productRouter = {
         });
       }
       return res;
+    }
+  ),
+
+  createWithCategories: organizationProcedure.products.createWithCategories.handler(
+    async ({ context, input, errors }) => {
+      const { categoryIds, ...data } = input;
+      try {
+        return await productService(
+          context.db,
+          context.activeOrganizationId
+        ).createWithCategories(data, categoryIds);
+      } catch (error) {
+        console.log(error);
+        throw errors.BAD_REQUEST({ message: 'Failed to create product' });
+      }
     }
   ),
 

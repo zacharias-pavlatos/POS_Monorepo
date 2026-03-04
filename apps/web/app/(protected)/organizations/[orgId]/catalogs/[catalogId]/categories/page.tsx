@@ -11,9 +11,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CategoryForm, type CategoryFormValues } from '@/components/forms/category-form';
 
 import type { SelectCategoryType as Category } from '@repo/orpc/contracts';
+import { useParams, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
-export function CategoriesPage({ params }: { params: { catalogId: string } }) {
-  const { catalogId } = params;
+export function CategoriesPage() {
+  const pathname = usePathname();
+  const { catalogId } = useParams<{ catalogId: string }>();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCategory, setEditingCategory] = React.useState<Category>();
@@ -28,8 +31,8 @@ export function CategoriesPage({ params }: { params: { catalogId: string } }) {
 
   // Fetch categories
   const { data: categories = [], isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => rpcClient.categories.all(),
+    queryKey: ['categories', catalogId],
+    queryFn: () => rpcClient.categories.byCatalog({ catalogId }),
   });
 
   // One mutation that handles both create + update
@@ -82,7 +85,9 @@ export function CategoriesPage({ params }: { params: { catalogId: string } }) {
 
       {categories.map(category => (
         <div key={category.id} className="flex items-center justify-between">
-          <span>{category.name}</span>
+          <Link href={`${pathname}/${category.id}/products`}>
+            <span>{category.name}</span>
+          </Link>
           <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
             <Pencil className="size-4" />
           </Button>

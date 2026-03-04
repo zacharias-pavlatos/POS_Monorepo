@@ -114,6 +114,17 @@ const productContract = oc
         })
       ),
 
+    byCategory: oc
+      .route({
+        method: 'GET',
+        path: '/by-category/{categoryId}',
+        summary: 'List products for a category',
+        description:
+          'Retrieve all products belonging to a specific category, ordered by display order.',
+      })
+      .input(z.object({ categoryId: z.uuid() }))
+      .output(z.array(SelectProductSchema)),
+
     create: oc
       .route({
         method: 'POST',
@@ -122,6 +133,21 @@ const productContract = oc
         description: 'Creates a new product. Products are the items that can be sold.',
       })
       .input(InsertProductSchema)
+      .output(SelectProductSchema),
+
+    createWithCategories: oc
+      .route({
+        method: 'POST',
+        path: '/with-categories',
+        summary: 'Create a product and link it to one or more categories',
+        description:
+          'Creates a new product and associates it with the given categories in a single transaction.',
+      })
+      .input(
+        InsertProductSchema.extend({
+          categoryIds: z.array(z.uuid()).min(1),
+        })
+      )
       .output(SelectProductSchema),
 
     update: oc

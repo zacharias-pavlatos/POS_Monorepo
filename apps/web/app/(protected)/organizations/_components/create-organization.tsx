@@ -1,13 +1,13 @@
 //import { redirect } from "next/navigation";
 
-import { CreateOrganizationForm } from "@/components/forms/create-organization-form";
+import { CreateOrganizationForm } from '@/components/forms/create-organization-form';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "@/components/ui/card";
+} from '@repo/ui/components/card';
 
 export default function CreateOrganization() {
   return (

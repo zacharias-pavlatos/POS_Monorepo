@@ -3,16 +3,28 @@
 import * as React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { InsertWorkStationSchema } from '@repo/orpc/contracts';
-import { Button } from '@repo/ui/components/button';
+import { Button, buttonVariants } from '@repo/ui/components/button';
 import {
   TextField,
   TextareaField,
   SwitchField,
   ColorPickerField,
 } from '@/components/form-fields';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@repo/ui/components/alert-dialog';
+import { DangerZone } from '../form-fields/danger-zone';
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -30,6 +42,8 @@ type WorkstationFormProps = {
   onSubmit: (values: WorkstationFormValues) => void | Promise<void>;
   isSubmitting?: boolean;
   submitLabel?: string;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 };
 
 export function WorkstationForm({
@@ -37,6 +51,8 @@ export function WorkstationForm({
   onSubmit,
   isSubmitting,
   submitLabel = 'Save',
+  onDelete,
+  isDeleting,
 }: WorkstationFormProps) {
   const form = useForm<WorkstationFormValues>({
     resolver: zodResolver(workstationFormSchema),
@@ -60,7 +76,7 @@ export function WorkstationForm({
             field={field}
             fieldState={fieldState}
             label="Workstation Name"
-            placeholder="e.g. Summer Menu 2026"
+            placeholder="e.g. Cold Kitchen"
             required
           />
         )}
@@ -101,7 +117,18 @@ export function WorkstationForm({
         )}
       />
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      {onDelete && (
+        <DangerZone
+          actionLabel="Delete Workstation"
+          description="Permanently delete this workstation and all its data."
+          confirmTitle="Delete Workstation?"
+          confirmDescription="This will permanently remove this workstation. Categories assigned to it will need to be reassigned. This action cannot be undone."
+          onConfirm={onDelete}
+          isLoading={isDeleting}
+        />
+      )}
+
+      <Button type="submit" disabled={isSubmitting || isDeleting} className="flex-1">
         {isSubmitting && <Loader2 className="size-4 animate-spin" />}
         {submitLabel}
       </Button>

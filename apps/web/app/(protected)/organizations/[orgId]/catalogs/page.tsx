@@ -12,8 +12,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { CatalogFormValues } from '@/components/forms/catalog-form';
 import type { SelectCatalogType as Catalog } from '@repo/orpc/contracts';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function CatalogsPage() {
+  const pathname = usePathname();
+
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCatalog, setEditingCatalog] = React.useState<Catalog>();
 
@@ -73,14 +77,16 @@ export function CatalogsPage() {
         </Button>
       </div>
 
-      {catalogs.map(catalog => (
-        <div key={catalog.id} className="flex items-center justify-between">
-          <span>{catalog.name}</span>
-          <Button variant="ghost" size="icon" onClick={() => handleEdit(catalog)}>
-            <Pencil className="size-4" />
-          </Button>
-        </div>
-      ))}
+      <div className="mt-4 space-y-2">
+        {catalogs.map(catalog => (
+          <div key={catalog.id} className="flex items-center justify-between border p-2">
+            <Link href={`${pathname}/${catalog.id}/categories`}>{catalog.name}</Link>
+            <Button variant="ghost" size="icon" onClick={() => handleEdit(catalog)}>
+              <Pencil className="size-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
 
       <ResponsiveDialog
         open={dialogOpen}

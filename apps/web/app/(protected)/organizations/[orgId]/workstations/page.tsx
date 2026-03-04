@@ -18,6 +18,7 @@ export function WorkstationsPage() {
   const [editingWorkstation, setEditingWorkstation] = React.useState<Workstation>();
 
   const queryClient = useQueryClient();
+
   // Fetch workstations
   const { data: workstations = [], isLoading } = useQuery({
     queryKey: ['workstations'],
@@ -48,6 +49,20 @@ export function WorkstationsPage() {
     },
   });
 
+  // Mutation for deleting a workstation
+  const deleteWorkstationMutation = useMutation({
+    mutationFn: () => rpcClient.workstations.delete({ id: editingWorkstation!.id }),
+    onSuccess: async () => {
+      toast.success('Workstation deleted');
+      setDialogOpen(false);
+      setEditingWorkstation(undefined);
+      await queryClient.invalidateQueries({ queryKey: ['workstations'] });
+    },
+    onError: () => {
+      toast.error('Failed to delete workstation');
+    },
+  });
+
   function handleCreate() {
     setEditingWorkstation(undefined);
     setDialogOpen(true);
@@ -60,6 +75,10 @@ export function WorkstationsPage() {
 
   function handleSubmit(values: WorkstationFormValues) {
     upsertWorkstationMutation.mutate(values);
+  }
+
+  function handleDelete() {
+    deleteWorkstationMutation.mutate();
   }
 
   return (
@@ -95,6 +114,8 @@ export function WorkstationsPage() {
           onSubmit={handleSubmit}
           isSubmitting={upsertWorkstationMutation.isPending}
           submitLabel={editingWorkstation ? 'Save Changes' : 'Create Workstation'}
+          onDelete={editingWorkstation ? handleDelete : undefined}
+          isDeleting={deleteWorkstationMutation.isPending}
         />
       </ResponsiveDialog>
     </div>

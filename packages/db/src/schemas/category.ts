@@ -135,7 +135,13 @@ export const categoryProduct = pgTable(
      * Allows: Same product in multiple categories, same category with multiple products
      * Prevents: Same product appearing twice in the same category
      */
-    primaryKey({ columns: [table.categoryId, table.productId] }),
+    primaryKey({
+      columns: [
+        //table.organizationId,
+        table.categoryId,
+        table.productId,
+      ],
+    }),
 
     // Optimizes: "Get all products in this category for this organization"
     index('idx_category_product_org_cat').on(table.organizationId, table.categoryId),

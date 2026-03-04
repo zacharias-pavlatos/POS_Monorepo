@@ -15,26 +15,20 @@ import {
   SwitchField,
   ImageUploadField,
   WeekDaysField,
-  ColorPickerField,
   SelectField,
   CollapsibleSection,
 } from '@/components/form-fields';
+import { DangerZone } from '../form-fields/danger-zone';
 
-import { InsertCategorySchema } from '@repo/orpc/contracts';
+import { InsertProductSchema } from '@repo/orpc/contracts';
 import type { SelectWorkStationType as Workstation } from '@repo/orpc/contracts';
+import { PriceField } from '../form-fields/price-field';
 
 // ---------------------------------------------------------------------------
 // Schema
 // ---------------------------------------------------------------------------
 
-/**
- * z.coerce.date() infers as `unknown` since it accepts any input (string,
- * number, etc.). RHF needs `Date`, so we override with z.date() here.
- */
-const categoryFormSchema = InsertCategorySchema.omit({
-  id: true,
-  catalogId: true,
-})
+const productFormSchema = InsertProductSchema.omit({ id: true })
   .extend({
     fromDate: z.date(),
     toDate: z.date().nullable(),
@@ -43,33 +37,42 @@ const categoryFormSchema = InsertCategorySchema.omit({
     message: 'End date must be after start date',
     path: ['toDate'],
   });
-export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
 
-type CategoryFormProps = {
-  defaultValues?: Partial<CategoryFormValues>;
+export type ProductFormValues = z.infer<typeof productFormSchema>;
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+type ProductFormProps = {
+  defaultValues?: Partial<ProductFormValues>;
   workstations: Workstation[];
-  onSubmit: (values: CategoryFormValues) => void | Promise<void>;
+  onSubmit: (values: ProductFormValues) => void | Promise<void>;
   isSubmitting?: boolean;
   submitLabel?: string;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 };
 
-export function CategoryForm({
+export function ProductForm({
   defaultValues,
   workstations,
   onSubmit,
   isSubmitting,
   submitLabel = 'Save',
-}: CategoryFormProps) {
-  const form = useForm<CategoryFormValues>({
-    resolver: zodResolver(categoryFormSchema),
+  onDelete,
+  isDeleting,
+}: ProductFormProps) {
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
     defaultValues: {
-      workstationId: undefined,
+      workstationId: null,
+      barcode: undefined,
       name: '',
-      description: '',
-      internalNotes: '',
-      color: null,
+      description: undefined,
       image: null,
-      servingOrder: 0,
+      preparationTime: undefined,
+      basePrice: 0,
       fromDate: new Date(),
       toDate: null,
       fromTime: undefined,
@@ -99,13 +102,6 @@ export function CategoryForm({
           <ImageUploadField field={field} fieldState={fieldState} label="Image" />
         )}
       />
-      <Controller
-        name="color"
-        control={form.control}
-        render={({ field, fieldState }) => (
-          <ColorPickerField field={field} fieldState={fieldState} label="Color" />
-        )}
-      />
 
       <Controller
         name="name"
@@ -114,13 +110,12 @@ export function CategoryForm({
           <TextField
             field={field}
             fieldState={fieldState}
-            label="Category Name"
-            placeholder="e.g. Summer Menu 2026"
+            label="Product Name"
+            placeholder="e.g. Espresso"
             required
           />
         )}
       />
-
       <Controller
         name="description"
         control={form.control}
@@ -129,45 +124,49 @@ export function CategoryForm({
             field={field}
             fieldState={fieldState}
             label="Description"
-            placeholder="Brief description of this category..."
+            placeholder="Brief description of this product..."
             maxLength={1000}
           />
         )}
       />
 
       <Controller
-        name="internalNotes"
+        name="basePrice"
         control={form.control}
         render={({ field, fieldState }) => (
-          <TextareaField
+          <PriceField field={field} fieldState={fieldState} label="Price" required />
+        )}
+      />
+
+      <Controller
+        name="barcode"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <TextField
             field={field}
             fieldState={fieldState}
-            label="Internal Notes"
-            placeholder="Notes visible only to your team..."
-            maxLength={1000}
+            label="Barcode"
+            placeholder="e.g. 5901234123457"
           />
         )}
       />
 
       <Controller
-        name="servingOrder"
+        name="preparationTime"
         control={form.control}
         render={({ field, fieldState }) => (
-          <SelectField
+          <TextField
             field={{
               ...field,
-              value: field.value != null ? String(field.value) : '', // number → string for Select display
-              onChange: (val: string) => field.onChange(Number(val)), // string → number back into RHF
+              value: field.value != null ? String(field.value) : '',
+              onChange: (val: string | null) => {
+                const num = val ? parseInt(val, 10) : undefined;
+                field.onChange(num != null && !isNaN(num) ? num : undefined);
+              },
             }}
             fieldState={fieldState}
-            label="Serving Order"
-            description="Which course this category fires with"
-            placeholder="Select a course"
-            options={[
-              { value: '1', label: '1 - Appetizer' },
-              { value: '2', label: '2 - Main Course' },
-              { value: '3', label: '3 - Dessert' },
-            ]}
+            label="Preparation Time (seconds)"
+            placeholder="e.g. 300"
           />
         )}
       />
@@ -177,15 +176,22 @@ export function CategoryForm({
         control={form.control}
         render={({ field, fieldState }) => (
           <SelectField
-            field={field}
+            field={{
+              ...field,
+              value: field.value,
+              onChange: (val: string) => field.onChange(val === '__none__' ? null : val),
+            }}
             fieldState={fieldState}
-            label="Workstation"
-            description="Which workstation this category belongs to"
-            placeholder="Select a workstation"
-            options={workstations.map(workstation => ({
-              value: workstation.id,
-              label: workstation.name,
-            }))}
+            label="Workstation Override"
+            description="If set, this product always routes here regardless of category"
+            placeholder="Use category default"
+            options={[
+              { value: '__none__', label: 'Use category default' },
+              ...workstations.map(ws => ({
+                value: ws.id,
+                label: ws.name,
+              })),
+            ]}
           />
         )}
       />
@@ -198,12 +204,12 @@ export function CategoryForm({
             field={field}
             fieldState={fieldState}
             label="Active"
-            description="Make this category visible to customers"
+            description="Make this product available for ordering"
           />
         )}
       />
 
-      <CollapsibleSection label="Advanced" defaultOpen={hasSchedulingValues}>
+      <CollapsibleSection label="Scheduling" defaultOpen={hasSchedulingValues}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Controller
             name="fromDate"
@@ -256,8 +262,17 @@ export function CategoryForm({
           )}
         />
       </CollapsibleSection>
-
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      {onDelete && (
+        <DangerZone
+          actionLabel="Delete Product"
+          description="Permanently delete this product and all its data."
+          confirmTitle="Delete Product?"
+          confirmDescription="This will permanently remove this product, including its modifier groups and any category associations. This action cannot be undone."
+          onConfirm={onDelete}
+          isLoading={isDeleting}
+        />
+      )}
+      <Button type="submit" disabled={isSubmitting || isDeleting} className="w-full">
         {isSubmitting && <Loader2 className="size-4 animate-spin" />}
         {submitLabel}
       </Button>

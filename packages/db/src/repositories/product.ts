@@ -1,6 +1,7 @@
 import { and, eq, ilike, isNull } from 'drizzle-orm';
 
 import { product } from '../schemas/product';
+import { categoryProduct } from '../schemas/category';
 import type { InsertProductInputType, PatchProductInputType } from '../schemas/product';
 import type { TenantContext } from './types';
 
@@ -83,6 +84,21 @@ export const productRepository = ({ db, organizationId }: TenantContext) => ({
         offers: { with: { offer: true } },
       },
     });
+  },
+
+  findByCategory: (categoryId: string) => {
+    return db.query.categoryProduct
+      .findMany({
+        where: and(
+          eq(categoryProduct.categoryId, categoryId),
+          eq(categoryProduct.organizationId, organizationId)
+        ),
+        orderBy: (cp, { asc }) => [asc(cp.displayOrder)],
+        with: {
+          product: true,
+        },
+      })
+      .then(rows => rows.map(r => r.product));
   },
 
   create: async (payload: InsertProductInputType) => {
