@@ -1,6 +1,6 @@
-import type { DatabaseInstance } from '../client';
+import type { DatabaseOrTransaction } from '../client';
 
 export interface TenantContext {
-  db: DatabaseInstance;
+  db: DatabaseOrTransaction;
   organizationId: string;
 }

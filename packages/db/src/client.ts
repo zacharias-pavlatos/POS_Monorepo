@@ -1,29 +1,32 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
 import env from './lib/env';
 import * as schema from './schemas';
 
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export interface DatabaseClientOptions {
   databaseUrl?: string;
 }
 
-export const createDb = (opts?: DatabaseClientOptions) => {
+export const createDb = (opts?: DatabaseClientOptions): DatabaseInstance => {
   const databaseUrl = opts?.databaseUrl ?? env.DATABASE_URL;
 
   if (!databaseUrl) {
     throw new Error('DATABASE_URL is required');
   }
 
-  const connection = neon(databaseUrl);
-
   return drizzle({
+    connection: databaseUrl,
     schema,
-    client: connection,
     logger: false,
   });
 };
 
-export type DatabaseInstance = NeonHttpDatabase<typeof schema>;
+export type DatabaseInstance = NodePgDatabase<typeof schema>;
+
+export type TransactionInstance = Parameters<
+  Parameters<DatabaseInstance['transaction']>[0]
+>[0];
+
+export type DatabaseOrTransaction = DatabaseInstance | TransactionInstance;
