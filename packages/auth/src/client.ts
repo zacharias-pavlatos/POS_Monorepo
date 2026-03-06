@@ -1,5 +1,5 @@
-import { organizationClient } from 'better-auth/client/plugins';
 import { createAuthClient as createBetterAuthClient } from 'better-auth/react';
+import { organizationClient } from 'better-auth/client/plugins';
 
 export interface AuthClientOptions {
   basePath: string;

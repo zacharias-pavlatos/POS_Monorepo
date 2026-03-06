@@ -28,3 +28,7 @@ tools
   ├─ tailwind
   └─ typescript
 ```
+
+Bussnes decisions:
+- What will happen if a category is deleted? What about products in that category?
+- What will happen if a workstation is deleted? What about the categories and products in that workstation? ?
