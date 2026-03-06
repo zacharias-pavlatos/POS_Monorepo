@@ -1,5 +1,5 @@
 import { formatPrice } from '../utils/format-price';
-import { StockBadge } from '../stock-badge';
+import { StockBadgeDot } from '../stock-badge';
 
 import type { Product } from '../types';
 
@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="flex items-center justify-between">
         <span className="font-mono text-sm font-bold">{formatPrice(product.price)}</span>
-        <StockBadge stock={product.stock} />
+        <StockBadgeDot stock={product.stock} />
       </div>
     </div>
   );
