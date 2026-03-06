@@ -67,6 +67,7 @@ function SortableColumnItem({
       >
         <GripVertical className="h-3 w-3" />
       </button>
+
       <button
         onClick={onToggle}
         className="flex flex-1 cursor-pointer items-center gap-2 text-sm"
@@ -105,6 +106,7 @@ function getToggleableColumns<TData>(table: Table<TData>): Column<TData, unknown
     return aIndex - bIndex;
   });
 }
+
 // ── Main component ──────────────────────────────────────────────────────────
 
 interface DataTableColumnVisibilityProps<TData> {
@@ -118,8 +120,8 @@ export function DataTableColumnVisibility<TData>({
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor)
   );
 
   const columns = getToggleableColumns(table);
@@ -129,12 +131,12 @@ export function DataTableColumnVisibility<TData>({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = columnIds.indexOf(active.id as string);
-    const newIndex = columnIds.indexOf(over.id as string);
+    const oldIndex = columnIds.indexOf(String(active.id));
+    const newIndex = columnIds.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+
     const newOrder = arrayMove(columnIds, oldIndex, newIndex);
 
-    // Rebuild full column order: non-toggleable columns keep their position,
-    // toggleable columns get the new order
     const toggleableSet = new Set(columnIds);
     const fullOrder =
       table.getState().columnOrder.length > 0
@@ -148,39 +150,45 @@ export function DataTableColumnVisibility<TData>({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="gap-2">
           <Settings2 className="h-4 w-4" />
           <span>Columns</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent align="end" className="w-52 p-1.5">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-          onDragEnd={handleDragEnd}
-          id={sortableId}
-        >
-          <SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
-            {columns.map(column => (
-              <SortableColumnItem
-                key={column.id}
-                id={column.id}
-                label={column.id}
-                visible={column.getIsVisible()}
-                onToggle={() => column.toggleVisibility()}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
+        {/* Sortable area only */}
+        <div className="max-h-72 overflow-y-auto pb-1">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+            onDragEnd={handleDragEnd}
+            id={sortableId}
+          >
+            <SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
+              {columns.map(column => (
+                <SortableColumnItem
+                  key={column.id}
+                  id={column.id}
+                  label={column.id}
+                  visible={column.getIsVisible()}
+                  onToggle={() => column.toggleVisibility()}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+        </div>
+
+        {/* Footer */}
         <div className="mt-1 border-t pt-1">
           <button
             onClick={() => {
               table.resetColumnVisibility();
               table.resetColumnOrder();
             }}
-            className="text-muted-foreground hover:bg-accent/50 hover:text-foreground w-full rounded-sm px-2 py-1.5 text-center text-sm transition-colors"
+            className="text-muted-foreground hover:bg-accent/50 hover:text-foreground flex w-full items-center justify-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
             <span>Reset to default</span>
