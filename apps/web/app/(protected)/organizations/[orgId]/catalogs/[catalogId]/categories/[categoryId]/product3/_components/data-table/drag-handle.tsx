@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { GripVertical } from 'lucide-react';
 import { Button } from '@repo/ui/components/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@repo/ui/components/tooltip';
+import { toast } from '@repo/ui/components/sonner';
 
 // ── Context for DnD state ───────────────────────────────────────────────────
 
@@ -45,16 +45,18 @@ export function DragHandle({ id, disabled: disabledProp }: DragHandleProps) {
 
   if (disabled) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex size-7 cursor-not-allowed items-center justify-center">
-            <GripVertical className="text-muted-foreground/30 size-3.5" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="text-xs">
-          {ctx.reason ?? 'Clear sort and filters to reorder'}
-        </TooltipContent>
-      </Tooltip>
+      <div
+        role="button"
+        className="flex size-7 cursor-not-allowed items-center justify-center"
+        onClick={() =>
+          // TODO: Make something better than this
+          toast.warning(ctx.reason ?? 'Clear sort and filters to reorder', {
+            position: 'top-center',
+          })
+        }
+      >
+        <GripVertical className="text-muted-foreground/30 size-3.5" />
+      </div>
     );
   }
 

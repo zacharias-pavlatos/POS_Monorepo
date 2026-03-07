@@ -16,6 +16,7 @@ import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifi
 import {
   arrayMove,
   SortableContext,
+  rectSortingStrategy,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
@@ -51,6 +52,7 @@ import { DataTableColumnEditor } from './data-table-column-editor';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableSortIndicator } from './data-table-sort-indicator';
 import { DraggableProvider } from './drag-handle';
+import { DraggableCard } from './draggable-card';
 import { DraggableRow } from './draggable-row';
 import { FilterBuilder } from './filter/filter-builder';
 
@@ -347,11 +349,31 @@ export function DataTable<TData extends { id: string }>({
             No results found.
           </div>
         ) : view === 'card' && cardRenderer ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
-            {rows.map(row => (
-              <React.Fragment key={row.id}>{cardRenderer(row)}</React.Fragment>
-            ))}
-          </div>
+          isDraggable ? (
+            <DndContext
+              collisionDetection={closestCenter}
+              modifiers={[restrictToParentElement]}
+              onDragEnd={handleDragEnd}
+              sensors={sensors}
+              id={`${sortableId}-cards`}
+            >
+              <SortableContext items={sortableRowIds} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
+                  {rows.map(row => (
+                    <DraggableCard key={row.id} id={row.original.id}>
+                      {cardRenderer(row)}
+                    </DraggableCard>
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
+              {rows.map(row => (
+                <React.Fragment key={row.id}>{cardRenderer(row)}</React.Fragment>
+              ))}
+            </div>
+          )
         ) : (
           <div className="overflow-hidden rounded-lg border">{renderTable()}</div>
         )}
