@@ -152,8 +152,8 @@ export function DataTableColumnVisibility<TData>({
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Settings2 className="h-4 w-4" />
-          <span>Columns</span>
-          <ChevronDown className="h-4 w-4" />
+          <span className="hidden sm:inline">Columns</span>
+          <ChevronDown className="hidden h-4 w-4 sm:inline" />
         </Button>
       </PopoverTrigger>
 

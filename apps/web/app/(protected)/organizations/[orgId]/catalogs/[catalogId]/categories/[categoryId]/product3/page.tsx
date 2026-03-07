@@ -76,7 +76,7 @@ const PRODUCTS: Product[] = [
 
 export default function ProductsPage() {
   return (
-    <div className="py-8">
+    <div className="container mx-auto max-w-6xl py-8">
       <DataTable
         data={PRODUCTS}
         columns={columns}

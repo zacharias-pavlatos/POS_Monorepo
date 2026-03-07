@@ -195,9 +195,34 @@ export function DataTable<TData extends { id: string }>({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {onAdd && (
+            <Button size="sm" className="gap-1.5" onClick={onAdd}>
+              <Plus className="h-4 w-4" />
+              {/* <span className="hidden lg:inline">{addLabel}</span> */}
+              <span className="inline">{addLabel}</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Search ── */}
+      <div className="flex items-center justify-between gap-3 px-4 lg:px-6">
+        <div className="min-w-0 flex-1">
+          <Label htmlFor="data-table-search" className="sr-only">
+            Search
+          </Label>
+          <Input
+            id="data-table-search"
+            placeholder={searchPlaceholder}
+            value={globalFilter}
+            onChange={e => setGlobalFilter(e.target.value)}
+            className="max-w-xs truncate"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
           {view === 'list' && <DataTableColumnVisibility table={table} />}
 
-          {/* View toggle — only if card view is available */}
           {cardRenderer && (
             <div className="flex overflow-hidden rounded-md border">
               {(
@@ -222,28 +247,7 @@ export function DataTable<TData extends { id: string }>({
               ))}
             </div>
           )}
-
-          {onAdd && (
-            <Button size="sm" className="gap-1.5" onClick={onAdd}>
-              <Plus className="h-4 w-4" />
-              <span className="hidden lg:inline">{addLabel}</span>
-            </Button>
-          )}
         </div>
-      </div>
-
-      {/* ── Search ── */}
-      <div className="px-4 lg:px-6">
-        <Label htmlFor="data-table-search" className="sr-only">
-          Search
-        </Label>
-        <Input
-          id="data-table-search"
-          placeholder={searchPlaceholder}
-          value={globalFilter}
-          onChange={e => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
       </div>
 
       {/* ── Filters ── */}
@@ -266,7 +270,7 @@ export function DataTable<TData extends { id: string }>({
             No results found.
           </div>
         ) : view === 'card' && cardRenderer ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
             {rows.map(row => (
               <React.Fragment key={row.id}>{cardRenderer(row)}</React.Fragment>
             ))}

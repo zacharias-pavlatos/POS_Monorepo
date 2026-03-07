@@ -4,7 +4,7 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@repo/ui/components/badge';
 
 import { DragHandle, SortHeader } from '../data-table';
-import { StockBadge, StockBadgeDot } from '../stock-badge';
+import { StockBadgeDot } from '../stock-badge';
 import { formatPrice } from '../utils/format-price';
 
 import type { Product } from '../types';
