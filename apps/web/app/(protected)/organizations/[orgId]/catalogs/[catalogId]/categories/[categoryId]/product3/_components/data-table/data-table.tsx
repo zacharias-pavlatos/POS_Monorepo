@@ -16,7 +16,6 @@ import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifi
 import {
   arrayMove,
   SortableContext,
-  rectSortingStrategy,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
@@ -47,14 +46,15 @@ import {
   TableRow,
 } from '@repo/ui/components/table';
 
-import type { ActiveFilters, FilterFieldDef } from './filter/types';
 import { DataTableColumnEditor } from './data-table-column-editor';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableSortIndicator } from './data-table-sort-indicator';
 import { DraggableProvider } from './drag-handle';
-import { DraggableCard } from './draggable-card';
 import { DraggableRow } from './draggable-row';
 import { FilterBuilder } from './filter/filter-builder';
+import { ReorderableCardGrid } from './reorderable-card-grid';
+
+import type { ActiveFilters, FilterFieldDef } from './filter/types';
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -349,31 +349,18 @@ export function DataTable<TData extends { id: string }>({
             No results found.
           </div>
         ) : view === 'card' && cardRenderer ? (
-          isDraggable ? (
-            <DndContext
-              collisionDetection={closestCenter}
-              modifiers={[restrictToParentElement]}
-              onDragEnd={handleDragEnd}
-              sensors={sensors}
-              id={`${sortableId}-cards`}
-            >
-              <SortableContext items={sortableRowIds} strategy={rectSortingStrategy}>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
-                  {rows.map(row => (
-                    <DraggableCard key={row.id} id={row.original.id}>
-                      {cardRenderer(row)}
-                    </DraggableCard>
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
-              {rows.map(row => (
-                <React.Fragment key={row.id}>{cardRenderer(row)}</React.Fragment>
-              ))}
-            </div>
-          )
+          <ReorderableCardGrid
+            items={rows.map(row => row.original)}
+            renderCard={item => cardRenderer(rows.find(r => r.original.id === item.id)!)}
+            onReorder={
+              onReorder
+                ? reordered => {
+                    setData(reordered);
+                    onReorder(reordered);
+                  }
+                : undefined
+            }
+          />
         ) : (
           <div className="overflow-hidden rounded-lg border">{renderTable()}</div>
         )}
