@@ -82,9 +82,9 @@ export default function ProductsPage() {
         columns={columns}
         title="Products"
         subtitle="Catalog"
-        filterFields={productFilterFields}
-        formatRangeValue={v => formatPrice(v * 100)}
         searchPlaceholder="Search products, categories, tags..."
+        formatRangeValue={v => formatPrice(v * 100)}
+        filterFields={productFilterFields}
         defaultColumnVisibility={{ tags: false, modifiers: false }}
         cardRenderer={row => <ProductCard product={row.original} />}
         addLabel="Add Product"

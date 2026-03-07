@@ -47,43 +47,35 @@ import {
 } from '@repo/ui/components/table';
 
 import type { ActiveFilters, FilterFieldDef } from './filter/types';
-import { DataTableColumnVisibility } from './data-table-column-visibility';
+import { DataTableColumnEditor } from './data-table-column-editor';
 import { DataTablePagination } from './data-table-pagination';
+import { DataTableSortIndicator } from './data-table-sort-indicator';
+import { DraggableProvider } from './drag-handle';
 import { DraggableRow } from './draggable-row';
 import { FilterBuilder } from './filter/filter-builder';
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
 interface DataTableProps<TData extends { id: string }> {
-  /** Data array */
   data: TData[];
-  /** TanStack Table column definitions */
   columns: ColumnDef<TData, any>[];
+
+  /** If provided, enables row drag-and-drop reordering. Add createDragColumn() to your columns. */
+  onReorder?: (reordered: TData[]) => void;
 
   /** Filter field definitions for the chip-based filter builder */
   filterFields?: FilterFieldDef<TData>[];
-  /** Format range filter values for display in chips (e.g. cents → "€12.90") */
   formatRangeValue?: (value: number) => string;
 
-  /** Render a card for the grid view. If not provided, card view is disabled. */
+  /** Render a card for grid view. If not provided, card view is disabled. */
   cardRenderer?: (row: Row<TData>) => React.ReactNode;
-  /** Search placeholder text */
   searchPlaceholder?: string;
-
-  /** Default column visibility (e.g. { tags: false }) */
   defaultColumnVisibility?: VisibilityState;
 
-  /** Header title */
   title: string;
-  /** Header subtitle */
   subtitle?: string;
-
-  /** Called when the add button is clicked */
   onAdd?: () => void;
-  /** Add button label */
   addLabel?: string;
-  /** Called when rows are reordered via drag-and-drop */
-  onReorder?: (reordered: TData[]) => void;
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -91,6 +83,7 @@ interface DataTableProps<TData extends { id: string }> {
 export function DataTable<TData extends { id: string }>({
   data: initialData,
   columns,
+  onReorder,
   filterFields = [],
   formatRangeValue,
   cardRenderer,
@@ -100,8 +93,9 @@ export function DataTable<TData extends { id: string }>({
   subtitle,
   onAdd,
   addLabel = 'Add',
-  onReorder,
 }: DataTableProps<TData>) {
+  const isDraggable = onReorder != null;
+
   // ── State ──
   const [view, setView] = React.useState<'card' | 'list'>(cardRenderer ? 'card' : 'list');
   const [data, setData] = React.useState(initialData);
@@ -127,18 +121,6 @@ export function DataTable<TData extends { id: string }>({
     setFilters(next);
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }
-
-  // ── DnD setup ──
-  const sortableId = React.useId();
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  );
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data.map(({ id }) => id),
-    [data]
-  );
 
   // ── Table instance ──
   const table = useReactTable({
@@ -166,23 +148,116 @@ export function DataTable<TData extends { id: string }>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData(prev => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        const reordered = arrayMove(prev, oldIndex, newIndex);
-        onReorder?.(reordered);
-        return reordered;
-      });
-    }
-  }
+  // ── DnD setup (only used when isDraggable) ──
+  const sortableId = React.useId();
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  );
 
   const rows = table.getRowModel().rows;
+  const isSorted = sorting.length > 0;
+  const isFiltered = columnFilters.length > 0 || globalFilter.length > 0;
+  const isDragDisabled = isSorted || isFiltered;
+  const dragDisabledReason = isSorted
+    ? 'Clear sorting to reorder rows'
+    : isFiltered
+      ? 'Clear filters to reorder rows'
+      : undefined;
 
-  // ── Render ──
-  return (
+  const sortableRowIds = React.useMemo<UniqueIdentifier[]>(
+    () => rows.map(row => row.original.id),
+    [rows]
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!active || !over || active.id === over.id) return;
+
+    setData(prev => {
+      const oldIndex = prev.findIndex(item => item.id === active.id);
+      const newIndex = prev.findIndex(item => item.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      const reordered = arrayMove(prev, oldIndex, newIndex);
+      onReorder?.(reordered);
+      return reordered;
+    });
+  }
+
+  // ── Table body rendering ──
+  function renderTableRows() {
+    if (rows.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={columns.length} className="h-24 text-center">
+            No results.
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (isDraggable) {
+      return (
+        <SortableContext items={sortableRowIds} strategy={verticalListSortingStrategy}>
+          {rows.map(row => (
+            <DraggableRow key={row.id} row={row} />
+          ))}
+        </SortableContext>
+      );
+    }
+
+    return rows.map(row => (
+      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+        {row.getVisibleCells().map(cell => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  }
+
+  function renderTable() {
+    const tableElement = (
+      <Table>
+        <TableHeader className="bg-muted sticky top-0 z-10">
+          {table.getHeaderGroups().map(headerGroup => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <TableHead key={header.id} colSpan={header.colSpan}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>{renderTableRows()}</TableBody>
+      </Table>
+    );
+
+    // Wrap in DndContext only when draggable
+    if (isDraggable) {
+      return (
+        <DndContext
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+          id={sortableId}
+        >
+          {tableElement}
+        </DndContext>
+      );
+    }
+
+    return tableElement;
+  }
+
+  // ── Main render ──
+  const content = (
     <div className="flex w-full flex-col gap-4">
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 lg:px-6">
@@ -195,33 +270,7 @@ export function DataTable<TData extends { id: string }>({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {onAdd && (
-            <Button size="sm" className="gap-1.5" onClick={onAdd}>
-              <Plus className="h-4 w-4" />
-              {/* <span className="hidden lg:inline">{addLabel}</span> */}
-              <span className="inline">{addLabel}</span>
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* ── Search ── */}
-      <div className="flex items-center justify-between gap-3 px-4 lg:px-6">
-        <div className="min-w-0 flex-1">
-          <Label htmlFor="data-table-search" className="sr-only">
-            Search
-          </Label>
-          <Input
-            id="data-table-search"
-            placeholder={searchPlaceholder}
-            value={globalFilter}
-            onChange={e => setGlobalFilter(e.target.value)}
-            className="max-w-xs truncate"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          {view === 'list' && <DataTableColumnVisibility table={table} />}
+          {view === 'list' && <DataTableColumnEditor table={table} />}
 
           {cardRenderer && (
             <div className="flex overflow-hidden rounded-md border">
@@ -247,7 +296,28 @@ export function DataTable<TData extends { id: string }>({
               ))}
             </div>
           )}
+
+          {onAdd && (
+            <Button size="sm" className="gap-1.5" onClick={onAdd}>
+              <Plus className="h-4 w-4" />
+              <span className="hidden lg:inline">{addLabel}</span>
+            </Button>
+          )}
         </div>
+      </div>
+
+      {/* ── Search ── */}
+      <div className="px-4 lg:px-6">
+        <Label htmlFor="data-table-search" className="sr-only">
+          Search
+        </Label>
+        <Input
+          id="data-table-search"
+          placeholder={searchPlaceholder}
+          value={globalFilter}
+          onChange={e => setGlobalFilter(e.target.value)}
+          className="max-w-sm"
+        />
       </div>
 
       {/* ── Filters ── */}
@@ -263,6 +333,13 @@ export function DataTable<TData extends { id: string }>({
         </div>
       )}
 
+      {/* ── Sort indicator ── */}
+      {isSorted && (
+        <div className="px-4 lg:px-6">
+          <DataTableSortIndicator sorting={sorting} onClear={() => setSorting([])} />
+        </div>
+      )}
+
       {/* ── Content ── */}
       <div className="px-4 lg:px-6">
         {rows.length === 0 ? (
@@ -270,62 +347,28 @@ export function DataTable<TData extends { id: string }>({
             No results found.
           </div>
         ) : view === 'card' && cardRenderer ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
             {rows.map(row => (
               <React.Fragment key={row.id}>{cardRenderer(row)}</React.Fragment>
             ))}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border">
-            <DndContext
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-              onDragEnd={handleDragEnd}
-              sensors={sensors}
-              id={sortableId}
-            >
-              <Table>
-                <TableHeader className="bg-muted sticky top-0 z-10">
-                  {table.getHeaderGroups().map(headerGroup => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map(header => (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                  {rows.length ? (
-                    <SortableContext
-                      items={dataIds}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {rows.map(row => (
-                        <DraggableRow key={row.id} row={row} />
-                      ))}
-                    </SortableContext>
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </DndContext>
-          </div>
+          <div className="overflow-hidden rounded-lg border">{renderTable()}</div>
         )}
       </div>
 
       <DataTablePagination table={table} />
     </div>
   );
+
+  // Wrap in DraggableProvider only when needed
+  if (isDraggable) {
+    return (
+      <DraggableProvider disabled={isDragDisabled} reason={dragDisabledReason}>
+        {content}
+      </DraggableProvider>
+    );
+  }
+
+  return content;
 }
