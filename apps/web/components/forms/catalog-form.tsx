@@ -34,19 +34,13 @@ const catalogFormSchema = InsertCatalogSchema.omit({ id: true }).extend({
 });
 export type CatalogFormValues = z.infer<typeof catalogFormSchema>;
 
-type CatalogFormProps = {
+interface CatalogFormProps {
   defaultValues?: Partial<CatalogFormValues>;
   onSubmit: (values: CatalogFormValues) => void | Promise<void>;
-  isSubmitting?: boolean;
-  submitLabel?: string;
-};
+  children?: React.ReactNode;
+}
 
-export function CatalogForm({
-  defaultValues,
-  onSubmit,
-  isSubmitting,
-  submitLabel = 'Save',
-}: CatalogFormProps) {
+export function CatalogForm({ defaultValues, onSubmit, children }: CatalogFormProps) {
   const form = useForm<CatalogFormValues>({
     resolver: zodResolver(catalogFormSchema),
     defaultValues: {
@@ -203,10 +197,7 @@ export function CatalogForm({
         />
       </CollapsibleSection>
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-        {submitLabel}
-      </Button>
+      {children}
     </form>
   );
 }

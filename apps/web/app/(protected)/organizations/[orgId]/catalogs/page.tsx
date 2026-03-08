@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil, Loader2 } from 'lucide-react';
 import { toast } from '@repo/ui/components/sonner';
 
 import { Button } from '@repo/ui/components/button';
@@ -98,9 +98,18 @@ export function CatalogsPage() {
           key={editingCatalog?.id ?? 'create'}
           defaultValues={editingCatalog}
           onSubmit={handleSubmit}
-          isSubmitting={upsertCatalogMutation.isPending}
-          submitLabel={editingCatalog ? 'Save Changes' : 'Create Catalog'}
-        />
+        >
+          <Button
+            type="submit"
+            disabled={upsertCatalogMutation.isPending}
+            className="w-full"
+          >
+            {upsertCatalogMutation.isPending && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+            {editingCatalog ? 'Save Changes' : 'Create Catalog'}
+          </Button>
+        </CatalogForm>
       </ResponsiveDialog>
     </div>
   );
