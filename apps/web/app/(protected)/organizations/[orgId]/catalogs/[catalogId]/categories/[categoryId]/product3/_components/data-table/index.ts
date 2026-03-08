@@ -5,7 +5,7 @@ export { DragHandle, DraggableProvider, useDraggableContext } from './drag-handl
 export { DraggableRow } from './draggable-row';
 
 // Table parts — reusable across any table
-export { SortHeader } from './sort-header';
+export { SortHeader } from './data-table-column-header';
 export { DataTablePagination } from './data-table-pagination';
 export { DataTableColumnEditor } from './data-table-column-editor';
 export { DataTableSortIndicator } from './data-table-sort-indicator';

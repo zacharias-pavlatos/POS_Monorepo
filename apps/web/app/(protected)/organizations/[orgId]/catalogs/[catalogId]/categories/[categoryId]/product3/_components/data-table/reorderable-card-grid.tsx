@@ -353,7 +353,7 @@ export function ReorderableCardGrid<TData extends { id: string }>({
               .filter(Boolean)
               .join(' ')}
           >
-            <div className="bg-background/90 supports-[backdrop-filter]:bg-background/70 flex min-h-12 items-center gap-3 rounded-full border px-3 py-2 shadow-lg backdrop-blur-xl">
+            <div className="bg-background/90 supports-backdrop-filter:bg-background/70 flex min-h-12 items-center gap-3 rounded-full border px-3 py-2 shadow-lg backdrop-blur-xl">
               <div
                 className={[
                   'text-muted-foreground text-xs transition-all duration-200',
