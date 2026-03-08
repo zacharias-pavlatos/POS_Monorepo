@@ -3,7 +3,6 @@ export { DataTable } from './data-table';
 // DnD building blocks — use when you need row/card reordering
 export { DragHandle, DraggableProvider, useDraggableContext } from './drag-handle';
 export { DraggableRow } from './draggable-row';
-export { DraggableCard } from './draggable-card';
 
 // Table parts — reusable across any table
 export { SortHeader } from './sort-header';
