@@ -1,9 +1,9 @@
-@import "tailwindcss";
-@source "../../../apps/**/*.{ts,tsx}";
-@source "../../../components/**/*.{ts,tsx}";
-@source "../**/*.{ts,tsx}";
+@import 'tailwindcss';
+@source '../../../apps/**/*.{ts,tsx}';
+@source '../../../components/**/*.{ts,tsx}';
+@source '../**/*.{ts,tsx}';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -123,5 +123,46 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ── Sortable card animations ─────────────────────────────── */
+.press-scale {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Press: multi-step bounce animation, gated by animation-delay */
+.group:active .press-scale:not(.press-scale-disabled) {
+  animation: bounce-down 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation-delay: 150ms;
+}
+
+@keyframes bounce-down {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.86);
+  }
+  65% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(0.9);
+  }
+}
+
+/* Wiggle for non-dragged cards during reorder */
+.custom-wiggle {
+  animation: wiggle 0.3s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-0.8deg);
+  }
+  50% {
+    transform: rotate(0.8deg);
   }
 }

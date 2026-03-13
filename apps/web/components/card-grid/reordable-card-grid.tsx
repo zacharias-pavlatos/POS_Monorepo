@@ -38,6 +38,8 @@ interface ReorderableCardGridProps<T> {
   items: T[];
   renderItem: (item: T) => React.ReactNode;
   onReorder: (newItems: T[]) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
   disabled?: boolean;
 }
 
@@ -45,6 +47,8 @@ export function ReorderableCardGrid<T extends { id: string }>({
   items,
   renderItem,
   onReorder,
+  onDragStart: onDragStartProp,
+  onDragEnd: onDragEndProp,
   disabled = false,
 }: ReorderableCardGridProps<T>) {
   const dndId = useId();
@@ -63,23 +67,24 @@ export function ReorderableCardGrid<T extends { id: string }>({
 
   // 2. Handle the start of the drag
   const handleDragStart = (event: DragStartEvent) => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(10);
-    }
+    // if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    //   navigator.vibrate(10);
+    // }
+    onDragStartProp?.();
   };
 
   // 3. Handle the drop (The actual reordering)
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = items.findIndex(item => item.id === String(active.id));
-    const newIndex = items.findIndex(item => item.id === String(over.id));
-
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    // Notify parent of the new order
-    onReorder(arrayMove(items, oldIndex, newIndex));
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex(item => item.id === String(active.id));
+      const newIndex = items.findIndex(item => item.id === String(over.id));
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onReorder(arrayMove(items, oldIndex, newIndex));
+      }
+    }
+    // Fire even if no reorder happened
+    onDragEndProp?.();
   };
 
   return (

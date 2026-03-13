@@ -10,7 +10,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useDndContext } from '@dnd-kit/core';
 import { cn } from '@repo/ui/lib/utils';
@@ -29,6 +29,37 @@ export function SortableCard({ id, children, disabled = false }: SortableCardPro
   const { active } = useDndContext();
   const isReorderingActive = Boolean(active);
 
+  /*
+   * This exists because of a **mouse-only browser behavior**.
+
+   * On touch devices, when you long-press, drag, and release, the browser does not synthesize a `click` event.
+   * So the `onClick` on the card wrapper never fires. No problem.
+   *
+   * On desktop with a mouse, the story is different.
+   * The sequence is: `mousedown` → mouse moves 5px → drag sensor activates → user drops → `mouseup` → **browser always fires `click`**.
+   * The mouse sensor's `distance: 5` constraint only controls when the drag starts — it doesn't suppress the click on release.
+   * So without the interceptor, every drag-and-drop on desktop would also navigate to the product page.
+   *
+   * `onClickCapture` runs in the **capture phase**, which fires top-down before the bubble phase.
+   * Since it's on the `SortableCard` wrapper (the outermost div), it intercepts the click before it reaches the inner `<div onClick>` on the card.
+   * If a drag just happened (`wasDraggedRef.current` is true), it calls `e.stopPropagation()` to kill the event.
+   * If no drag happened (a normal click), it does nothing and the click propagates normally to trigger navigation.
+   */
+
+  const wasDraggedRef = useRef(false);
+
+  useEffect(() => {
+    if (isDragging) wasDraggedRef.current = true;
+  }, [isDragging]);
+
+  const handleClickCapture = useCallback((e: React.MouseEvent) => {
+    if (wasDraggedRef.current) {
+      e.preventDefault(); // blocks <a> default navigation
+      e.stopPropagation(); // blocks onClick handlers
+      wasDraggedRef.current = false;
+    }
+  }, []);
+
   return (
     <div
       ref={setNodeRef}
@@ -38,46 +69,19 @@ export function SortableCard({ id, children, disabled = false }: SortableCardPro
       }}
       {...(disabled ? {} : attributes)}
       {...(disabled ? {} : listeners)}
+      onClickCapture={handleClickCapture}
       className={cn('group relative outline-none select-none', isDragging && 'z-10')}
     >
       <div
         className={cn(
-          'transition-all duration-200 ease-out',
-
-          /* BOUNCE: Applied when the user presses down */
-          !disabled && 'bounce-container active:delay-75',
-
-          // WIGGLE: Starts at 250ms because 'active' (from useDndContext)
-          // only becomes true when the sensor timer finishes.
+          'press-scale',
           isReorderingActive && !isDragging && 'custom-wiggle',
-
-          // POP: The item being dragged
-          isDragging && 'scale-95 opacity-85'
+          isDragging && 'scale-95 opacity-85',
+          disabled && 'press-scale-disabled'
         )}
       >
         {children}
       </div>
-
-      <style>{`
-       .group:active .bounce-container {
-           animation: spring-down 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            animation-delay: 80ms; 
-          }
-
-        @keyframes spring-down {
-          0% { transform: scale(1); }
-          40% { transform: scale(0.70); }
-          100% { transform: scale(0.95); }
-        }
-
-        .custom-wiggle {
-          animation: wiggle 0.3s ease-in-out infinite;
-        }
-        @keyframes wiggle {
-          0%, 100% { transform: rotate(-0.8deg); }
-          50% { transform: rotate(0.8deg); }
-        }
-      `}</style>
     </div>
   );
 }
