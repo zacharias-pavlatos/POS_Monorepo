@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Column Editor
  *
@@ -11,6 +9,8 @@
  * This is defined in the column configuration where the table columns
  * are declared. (e.g. enableHiding: true / false)
  */
+
+'use client';
 
 import { useId } from 'react';
 import {

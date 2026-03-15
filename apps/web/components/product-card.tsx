@@ -1,7 +1,14 @@
-import { formatPrice } from '../utils/format-price';
-import { StockBadgeDot } from '../stock-badge';
-
-import type { Product } from '../types';
+export interface Product {
+  id: string;
+  name: string;
+  categories: string[];
+  price: number; // cents
+  image: string;
+  stock: 'in_stock' | 'low_stock' | 'out_of_stock';
+  workstation: string;
+  modifiers: number;
+  tags: string[];
+}
 
 export function ProductCard({ product }: { product: Product }) {
   return (
@@ -23,7 +30,7 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <span className="font-mono text-sm font-bold">{formatPrice(product.price)}</span>
+        <span className="font-mono text-sm font-bold">{product.price}</span>
         <span className="text-muted-foreground text-xs">{product.stock}</span>
       </div>
     </div>

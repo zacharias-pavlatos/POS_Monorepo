@@ -30,7 +30,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 
-import { SortableCard } from '@/components/card-grid/sortable-card';
+import { SortableCard } from './sortable-card';
 
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 
@@ -41,6 +41,7 @@ interface ReorderableCardGridProps<T> {
   onDragStart?: () => void;
   onDragEnd?: () => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export function ReorderableCardGrid<T extends { id: string }>({
@@ -50,6 +51,7 @@ export function ReorderableCardGrid<T extends { id: string }>({
   onDragStart: onDragStartProp,
   onDragEnd: onDragEndProp,
   disabled = false,
+  className,
 }: ReorderableCardGridProps<T>) {
   const dndId = useId();
 
@@ -100,11 +102,13 @@ export function ReorderableCardGrid<T extends { id: string }>({
     >
       {/* 4. SortableContext needs the IDs of your items */}
       <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
-        {items.map(item => (
-          <SortableCard key={item.id} id={item.id} disabled={disabled}>
-            {renderItem(item)}
-          </SortableCard>
-        ))}
+        <div className={className}>
+          {items.map(item => (
+            <SortableCard key={item.id} id={item.id} disabled={disabled}>
+              {renderItem(item)}
+            </SortableCard>
+          ))}
+        </div>
       </SortableContext>
     </DndContext>
   );

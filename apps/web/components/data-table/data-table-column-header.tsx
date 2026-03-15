@@ -14,15 +14,14 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { type Column } from '@tanstack/react-table';
 import { Button } from '@repo/ui/components/button';
 
-interface SortHeaderProps<TData> {
+interface ColumnHeaderProps<TData> {
   column: Column<TData>;
   children: React.ReactNode;
 }
 
-export function SortHeader<TData>({ column, children }: SortHeaderProps<TData>) {
+export function ColumnHeader<TData>({ column, children }: ColumnHeaderProps<TData>) {
   const handleSort = () => {
     const sorted = column.getIsSorted();
-
     sorted === 'asc' ? column.clearSorting() : column.toggleSorting(sorted !== 'desc');
   };
 

@@ -4,6 +4,9 @@ import { DataTable } from './_components/data-table/data-table';
 import { columns, productFilterFields, ProductCard } from './_components/product';
 import { formatPrice } from './_components/utils/format-price';
 import type { Product } from './_components/types';
+import { ReorderableCardGrid } from '@/components/card-grid-long-press/reordable-card-grid';
+import { useState } from 'react';
+import Link from 'next/link';
 
 const PRODUCTS: Product[] = [
   {
@@ -75,6 +78,12 @@ const PRODUCTS: Product[] = [
 ];
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState(PRODUCTS);
+
+  const handleReorder = (reordered: Product[]) => {
+    setProducts(reordered);
+  };
+
   return (
     <div className="container mx-auto max-w-6xl py-8">
       <DataTable
@@ -96,6 +105,18 @@ export default function ProductsPage() {
           )
         }
       />
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
+        <ReorderableCardGrid
+          items={products}
+          onReorder={handleReorder}
+          renderItem={product => (
+            <Link href={`/products/${product.id}`} className="block h-full">
+              <ProductCard product={product} />
+            </Link>
+          )}
+        />
+      </div>
     </div>
   );
 }

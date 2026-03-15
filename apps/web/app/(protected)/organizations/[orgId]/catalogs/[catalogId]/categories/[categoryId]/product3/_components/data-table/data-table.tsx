@@ -138,10 +138,11 @@ export function DataTable<TData extends { id: string }>({
     },
     getRowId: row => row.id,
     onSortingChange: setSorting,
-    onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
+    onColumnVisibilityChange: setColumnVisibility,
     onColumnOrderChange: setColumnOrder,
+    onPaginationChange: setPagination,
+
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

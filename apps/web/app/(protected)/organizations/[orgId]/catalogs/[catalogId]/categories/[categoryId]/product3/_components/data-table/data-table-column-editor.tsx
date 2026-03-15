@@ -36,9 +36,9 @@ export function DataTableColumnEditor<TData>({
   const dndContextId = useId();
 
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor)
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
   );
 
   const columns = getToggleableColumns(table);

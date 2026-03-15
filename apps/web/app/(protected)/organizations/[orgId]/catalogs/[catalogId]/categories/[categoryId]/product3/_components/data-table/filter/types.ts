@@ -1,20 +1,27 @@
-export type FilterFieldType = "multi_array" | "multi_value" | "range"
+'use client';
 
-export interface FilterFieldDef<TData> {
-  /** Column id — must match a column accessorKey */
-  key: string
-  label: string
-  type: FilterFieldType
-  /** Returns available options from the dataset. Used for multi_array and multi_value. */
-  options?: (data: TData[]) => string[]
-  /** Format option labels for display (e.g. "in_stock" → "In Stock") */
-  formatOption?: (value: string) => string
-  /** For range filters */
-  min?: number
-  max?: number
-  step?: number
-  /** Extract the numeric value from a row for histogram/counting. For range filters. */
-  getValue?: (item: TData) => number
-}
+export type ActiveFilters = Record<string, string[] | [number, number]>;
 
-export type ActiveFilters = Record<string, string[] | [number, number]>
+type BaseFilterFieldDef<TData> = {
+  key: string;
+  label: string;
+};
+
+export type MultiValueFilterFieldDef<TData> = BaseFilterFieldDef<TData> & {
+  type: 'multi_value' | 'multi_array';
+  options: (data: TData[]) => string[];
+  formatOption?: (value: string) => string;
+};
+
+export type RangeFilterFieldDef<TData> = BaseFilterFieldDef<TData> & {
+  type: 'range';
+  min?: number;
+  max?: number;
+  step?: number;
+  getValue: (item: TData) => number;
+  formatValue?: (value: number) => string;
+};
+
+export type FilterFieldDef<TData> =
+  | MultiValueFilterFieldDef<TData>
+  | RangeFilterFieldDef<TData>;

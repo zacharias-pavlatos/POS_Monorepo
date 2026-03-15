@@ -28,12 +28,6 @@ export const productFilterFields: FilterFieldDef<Product>[] = [
     formatOption: v => STOCK_LABELS[v] ?? v,
   },
   {
-    key: 'tags',
-    label: 'Tag',
-    type: 'multi_array',
-    options: data => [...new Set(data.flatMap(p => p.tags).filter(Boolean))].sort(),
-  },
-  {
     key: 'price',
     label: 'Price',
     type: 'range',
@@ -41,5 +35,11 @@ export const productFilterFields: FilterFieldDef<Product>[] = [
     max: 30,
     step: 0.5,
     getValue: p => p.price / 100,
+  },
+  {
+    key: 'tags',
+    label: 'Tag',
+    type: 'multi_array',
+    options: data => [...new Set(data.flatMap(p => p.tags).filter(Boolean))].sort(),
   },
 ];
