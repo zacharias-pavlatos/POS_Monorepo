@@ -7,11 +7,11 @@ import { toast } from '@repo/ui/components/sonner';
 import { Button } from '@repo/ui/components/button';
 import { ResponsiveDialog } from '@/components/responsive-dialog';
 import { rpcClient } from '@/lib/rpc-client';
-import { ProductForm } from '@/components/forms/product-form';
+import { ProductForm } from '@/components/forms/product-form-old';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 
-import type { ProductFormValues } from '@/components/forms/product-form';
+import type { ProductFormValues } from '@/components/forms/product-form-old';
 import type { SelectProductType as Product } from '@repo/orpc/contracts';
 
 export function ProductsPage() {

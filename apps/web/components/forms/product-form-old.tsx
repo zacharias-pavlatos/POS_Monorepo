@@ -3,8 +3,10 @@
 import * as React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
+import { Button } from '@repo/ui/components/button';
 import {
   TextField,
   TextareaField,
@@ -16,6 +18,7 @@ import {
   SelectField,
   CollapsibleSection,
 } from '@/components/form-fields';
+import { DangerZone } from '../form-fields/danger-zone';
 
 import { InsertProductSchema } from '@repo/orpc/contracts';
 import type { SelectWorkStationType as Workstation } from '@repo/orpc/contracts';
@@ -49,14 +52,16 @@ type ProductFormProps = {
   submitLabel?: string;
   onDelete?: () => void;
   isDeleting?: boolean;
-  children?: React.ReactNode;
 };
 
 export function ProductForm({
   defaultValues,
   workstations,
   onSubmit,
-  children,
+  isSubmitting,
+  submitLabel = 'Save',
+  onDelete,
+  isDeleting,
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -257,7 +262,20 @@ export function ProductForm({
           )}
         />
       </CollapsibleSection>
-      {children}
+      {onDelete && (
+        <DangerZone
+          actionLabel="Delete Product"
+          description="Permanently delete this product and all its data."
+          confirmTitle="Delete Product?"
+          confirmDescription="This will permanently remove this product, including its modifier groups and any category associations. This action cannot be undone."
+          onConfirm={onDelete}
+          isLoading={isDeleting}
+        />
+      )}
+      <Button type="submit" disabled={isSubmitting || isDeleting} className="w-full">
+        {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+        {submitLabel}
+      </Button>
     </form>
   );
 }

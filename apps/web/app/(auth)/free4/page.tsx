@@ -17,6 +17,8 @@ import { columns } from './_components/product-table-columns';
 import { productFilterFields } from './_components/product-table-filter-fields';
 import { PRODUCTS } from './_components/data';
 import { useReorderableRollback } from '@/hooks/use-reorderable-rollback';
+import { ProductFormSheet } from '@/components/forms/product-form-sheet';
+import { Plus } from 'lucide-react';
 
 export default function ProductsPage() {
   const [view, setView] = useState<'grid' | 'table'>('grid');
@@ -30,6 +32,12 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto max-w-6xl space-y-4 py-8">
       {/* Toolbar — hidden during reorder */}
+      <ProductFormSheet>
+        <Button variant="default">
+          <Plus className="size-4" />
+          Create Product
+        </Button>
+      </ProductFormSheet>
       {!reorder.reorderMode && (
         <div className="flex items-center gap-2">
           <DataTableSearchBar table={table} />
