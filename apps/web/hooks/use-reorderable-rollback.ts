@@ -1,4 +1,12 @@
-// hooks/use-reorderable-rollback.ts
+/**
+ * A custom hook to manage state and logic for reorderable lists or grids.
+ *
+ * It tracks the active `reorderMode`, `isDragging` status, and `isPending` (saving) state.
+ * Upon entering reorder mode, it captures a snapshot of the initial items order.
+ * This allows it to easily compute the `changeCount` and roll back to
+ * the original layout if the reorder is cancelled.
+ */
+
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
