@@ -32,12 +32,14 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto max-w-6xl space-y-4 py-8">
       {/* Toolbar — hidden during reorder */}
-      <ProductFormSheet>
-        <Button variant="default">
-          <Plus className="size-4" />
-          Create Product
-        </Button>
-      </ProductFormSheet>
+      <div className="flex items-center justify-end gap-2">
+        <ProductFormSheet>
+          <Button variant="default">
+            <Plus className="size-4" />
+            New Product
+          </Button>
+        </ProductFormSheet>
+      </div>
       {!reorder.reorderMode && (
         <div className="flex items-center gap-2">
           <DataTableSearchBar table={table} />

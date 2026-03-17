@@ -75,9 +75,9 @@ export const ProductFormSheet = ({ product, children }: ProductFormSheetProps) =
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={setOpen} modal={false}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="overflow-y-auto p-4">
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{isEditingMode ? 'Edit Product' : 'New Product'}</SheetTitle>
           <SheetDescription>
@@ -87,38 +87,40 @@ export const ProductFormSheet = ({ product, children }: ProductFormSheetProps) =
           </SheetDescription>
         </SheetHeader>
 
-        <ProductForm
-          // Forces a fresh useForm instance when switching between products or between edit/create
-          key={product?.id ?? 'create'}
-          defaultValues={product}
-          workstations={workstations}
-          onSubmit={handleSubmit}
-        >
-          {isEditingMode && (
-            <DangerZone
-              actionLabel="Delete Product"
-              description="Permanently delete this product and all its data."
-              confirmTitle="Delete Product?"
-              confirmDescription="This will permanently remove this product, including its modifier groups and any category associations. This action cannot be undone."
-              onConfirm={handleDelete}
-              isLoading={deleteProductMutation.isPending}
-            />
-          )}
+        <div className="flex flex-col gap-4 p-4">
+          <ProductForm
+            // Forces a fresh useForm instance when switching between products or between edit/create
+            key={product?.id ?? 'create'}
+            defaultValues={product}
+            workstations={workstations}
+            onSubmit={handleSubmit}
+          >
+            {isEditingMode && (
+              <DangerZone
+                actionLabel="Delete Product"
+                description="Permanently delete this product and all its data."
+                confirmTitle="Delete Product?"
+                confirmDescription="This will permanently remove this product, including its modifier groups and any category associations. This action cannot be undone."
+                onConfirm={handleDelete}
+                isLoading={deleteProductMutation.isPending}
+              />
+            )}
 
-          <SheetFooter className="pb-4">
-            {/* <SheetFooter className="bg-background sticky bottom-0 border-t pb-4"> */}
-            <Button
-              type="submit"
-              disabled={upsertProductMutation.isPending}
-              className="w-full"
-            >
-              {upsertProductMutation.isPending && (
-                <Loader2 className="size-4 animate-spin" />
-              )}
-              {isEditingMode ? 'Save Changes' : 'Create Product'}
-            </Button>
-          </SheetFooter>
-        </ProductForm>
+            <SheetFooter className="pb-4">
+              {/* <SheetFooter className="bg-background sticky bottom-0 border-t pb-4"> */}
+              <Button
+                type="submit"
+                disabled={upsertProductMutation.isPending}
+                className="w-full"
+              >
+                {upsertProductMutation.isPending && (
+                  <Loader2 className="size-4 animate-spin" />
+                )}
+                {isEditingMode ? 'Save Changes' : 'Create Product'}
+              </Button>
+            </SheetFooter>
+          </ProductForm>
+        </div>
       </SheetContent>
     </Sheet>
   );
