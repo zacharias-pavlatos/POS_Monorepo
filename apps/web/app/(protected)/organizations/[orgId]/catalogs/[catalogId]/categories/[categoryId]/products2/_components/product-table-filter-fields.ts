@@ -82,7 +82,7 @@ export const productFilterFields: FilterFieldDef<Product>[] = [
   //     [...new Set(data.flatMap(product => product.tags).filter(Boolean))].sort(),
   // },
   {
-    key: 'price',
+    key: 'basePrice',
     label: 'Price',
     type: 'range',
     step: 1,
