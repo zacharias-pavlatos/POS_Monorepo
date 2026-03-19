@@ -53,6 +53,7 @@ export function useBasicDataTable<TData extends { id: string }>(
 ) {
   const { columns, initialState, ...tableProps } = props;
 
+  const enablePagination = !!initialState?.pagination;
   /*
    * Which columns are sorted and in what direction
    * Example: clicking "Price ↑" sorts rows by price ascending
@@ -106,11 +107,11 @@ export function useBasicDataTable<TData extends { id: string }>(
     state: {
       sorting,
       columnFilters,
-      pagination,
       rowSelection,
       columnVisibility,
       globalFilter,
       columnOrder,
+      ...(enablePagination && { pagination }),
     },
     defaultColumn: {
       ...tableProps.defaultColumn,
@@ -136,16 +137,16 @@ export function useBasicDataTable<TData extends { id: string }>(
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnOrderChange: setColumnOrder,
-    onPaginationChange: setPagination,
+    ...(enablePagination && { onPaginationChange: setPagination }),
 
     // Row models — do the actual client-side work
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    ...(enablePagination && { getPaginationRowModel: getPaginationRowModel() }),
   });
 
   return { table };

@@ -2,7 +2,11 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { Button } from '@repo/ui/components/button';
 
 import { useBasicDataTable } from '@/components/data-table/hooks/use-basic-data-table';
 import { ReorderableCardGrid } from '@/components/card-grid-reorder-mode/reordable-card-grid';
@@ -12,22 +16,35 @@ import { DataTableSearchBar } from '@/components/data-table/data-table-seartch-b
 import { DataTableFilter } from '@/components/data-table/data-table-filter-builder';
 import { DataTableColumnEditor } from '@/components/data-table/data-table-column-editor';
 import { ProductCard } from '@/components/product-card';
-import { Button } from '@repo/ui/components/button';
+import { ProductFormSheet } from '@/components/forms/products/product-form-sheet';
+import { useReorderableRollback } from '@/hooks/use-reorderable-rollback';
+import { rpcClient } from '@/lib/rpc-client';
+
 import { columns } from './_components/product-table-columns';
 import { productFilterFields } from './_components/product-table-filter-fields';
-import { PRODUCTS } from './_components/data';
-import { useReorderableRollback } from '@/hooks/use-reorderable-rollback';
-import { ProductFormSheet } from '@/components/forms/products/product-form-sheet';
-import { Plus } from 'lucide-react';
+import { cn } from '@repo/ui/lib/utils';
 
 export default function ProductsPage() {
+  const { categoryId } = useParams<{
+    categoryId: string;
+  }>();
   const [view, setView] = useState<'grid' | 'table'>('grid');
-  const [products, setProducts] = useState(PRODUCTS);
+  const { data: serverProducts = [], isLoading } = useQuery({
+    queryKey: ['products', categoryId],
+    queryFn: async () => {
+      const result = await rpcClient.products.all();
+      console.log('client received:', result.length, result);
+      return result;
+    },
+  });
+
+  const [localProducts, setLocalProducts] = useState<typeof serverProducts | null>(null);
+  const products = localProducts ?? serverProducts;
 
   const { table } = useBasicDataTable({ data: products, columns });
   const filteredProducts = table.getRowModel().rows.map(r => r.original);
 
-  const reorder = useReorderableRollback(filteredProducts, setProducts);
+  const reorder = useReorderableRollback(filteredProducts, setLocalProducts);
 
   return (
     <div className="container mx-auto max-w-6xl space-y-4 py-8">
@@ -73,8 +90,9 @@ export default function ProductsPage() {
           onClick={() =>
             reorder.reorderMode ? reorder.cancel() : reorder.setReorderMode(true)
           }
+          className={cn('flex items-center gap-2', reorder.reorderMode && 'invisible')}
         >
-          {reorder.reorderMode ? 'Done' : 'Reorder'}
+          Reorder
         </Button>
       </div>
 
@@ -84,7 +102,7 @@ export default function ProductsPage() {
           className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3"
           items={filteredProducts}
           disabled={!reorder.reorderMode}
-          onReorder={setProducts}
+          onReorder={setLocalProducts}
           onDragStart={() => reorder.setIsDragging(true)}
           onDragEnd={() => reorder.setIsDragging(false)}
           renderItem={product =>
@@ -100,7 +118,7 @@ export default function ProductsPage() {
       ) : (
         <DraggableTable
           table={table}
-          onReorder={setProducts}
+          onReorder={setLocalProducts}
           onDragStart={() => reorder.setIsDragging(true)}
           onDragEnd={() => reorder.setIsDragging(false)}
           //TODO: Add disabled prop to the table that will hide the grap handle .

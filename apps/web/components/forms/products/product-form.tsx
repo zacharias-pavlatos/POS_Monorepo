@@ -19,7 +19,7 @@ import {
 
 import { InsertProductSchema } from '@repo/orpc/contracts';
 import type { SelectWorkStationType as Workstation } from '@repo/orpc/contracts';
-import { PriceField } from '../form-fields/price-field';
+import { PriceField } from '../../form-fields/price-field';
 
 // ---------------------------------------------------------------------------
 // Schema

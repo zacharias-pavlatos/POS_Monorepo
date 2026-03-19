@@ -16,7 +16,9 @@ import { Button } from '@repo/ui/components/button';
 
 import { rpcClient } from '@/lib/rpc-client';
 import { ProductForm, type ProductFormValues } from './product-form';
-import { DangerZone } from '../form-fields/danger-zone';
+import { DangerZone } from '@/components/form-fields/danger-zone';
+
+import type { SelectProductType as Product } from '@repo/orpc/contracts';
 
 interface ProductFormSheetProps {
   product?: Product; // undefined = create, defined = edit
