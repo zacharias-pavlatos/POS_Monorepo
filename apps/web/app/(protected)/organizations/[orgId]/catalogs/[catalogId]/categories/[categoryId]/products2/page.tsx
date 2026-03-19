@@ -31,11 +31,7 @@ export default function ProductsPage() {
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const { data: serverProducts = [], isLoading } = useQuery({
     queryKey: ['products', categoryId],
-    queryFn: async () => {
-      const result = await rpcClient.products.all();
-      console.log('client received:', result.length, result);
-      return result;
-    },
+    queryFn: async () => rpcClient.products.all(),
   });
 
   const [localProducts, setLocalProducts] = useState<typeof serverProducts | null>(null);
