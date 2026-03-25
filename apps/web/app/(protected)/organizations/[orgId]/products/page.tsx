@@ -4,8 +4,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import { Button } from '@repo/ui/components/button';
 
 import { useBasicDataTable } from '@/components/data-table/hooks/use-basic-data-table';
@@ -25,13 +23,10 @@ import { productFilterFields } from './_components/product-table-filter-fields';
 import { cn } from '@repo/ui/lib/utils';
 
 export default function ProductsPage() {
-  const { categoryId } = useParams<{
-    categoryId: string;
-  }>();
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const { data: serverProducts = [], isLoading } = useQuery({
-    queryKey: ['products', categoryId],
-    queryFn: async () => rpcClient.products.all(),
+    queryKey: ['products'],
+    queryFn: () => rpcClient.products.all(),
   });
 
   const [localProducts, setLocalProducts] = useState<typeof serverProducts | null>(null);
@@ -105,11 +100,9 @@ export default function ProductsPage() {
             reorder.reorderMode ? (
               <ProductCard product={product} />
             ) : (
-              // <Link href={`/products/${product.id}`} className="block h-full">
               <ProductFormSheet product={product}>
                 <ProductCard product={product} />
               </ProductFormSheet>
-              // </Link>
             )
           }
         />
