@@ -105,9 +105,11 @@ export default function ProductsPage() {
             reorder.reorderMode ? (
               <ProductCard product={product} />
             ) : (
-              <Link href={`/products/${product.id}`} className="block h-full">
+              // <Link href={`/products/${product.id}`} className="block h-full">
+              <ProductFormSheet product={product}>
                 <ProductCard product={product} />
-              </Link>
+              </ProductFormSheet>
+              // </Link>
             )
           }
         />

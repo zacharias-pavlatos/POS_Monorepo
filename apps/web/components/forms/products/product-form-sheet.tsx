@@ -77,7 +77,7 @@ export const ProductFormSheet = ({ product, children }: ProductFormSheetProps) =
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen} modal={false}>
+    <Sheet open={open} onOpenChange={setOpen} modal={true}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
