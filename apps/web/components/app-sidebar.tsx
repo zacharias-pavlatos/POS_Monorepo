@@ -152,6 +152,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: `/organizations/${orgId}/products`,
       icon: BookText,
     },
+    {
+      title: 'Modifiers',
+      url: `/organizations/${orgId}/modifiers`,
+      icon: BookText,
+    },
 
     {
       title: 'Settings',

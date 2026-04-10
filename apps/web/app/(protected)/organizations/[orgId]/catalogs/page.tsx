@@ -15,7 +15,7 @@ import type { SelectCatalogType as Catalog } from '@repo/orpc/contracts';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export function CatalogsPage() {
+function CatalogsPage() {
   const pathname = usePathname();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
